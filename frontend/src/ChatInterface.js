@@ -10,7 +10,6 @@ import CloseIcon from "@mui/icons-material/Close";
 import API_BASE_URL from "./config";
 import "./ChatInterface.css";
 import Post from "./Post"; // Import the Post component
-import Picker from "@emoji-mart/react";
 
 const ChatInterface = ({ loggedInUser }) => {
   const { recipientId } = useParams();
@@ -27,7 +26,6 @@ const ChatInterface = ({ loggedInUser }) => {
   const [showDropdown, setShowDropdown] = useState(false);
   const [showDeleteFor, setShowDeleteFor] = useState(null);
   const [selectedPost, setSelectedPost] = useState(null); // State for selected post
-  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [replyTo, setReplyTo] = useState(null);
   const searchRef = useRef(null);
 
@@ -417,10 +415,7 @@ const ChatInterface = ({ loggedInUser }) => {
     }
   };
 
-  const addEmoji = (emoji) => {
-    setNewMessage((prev) => prev + emoji.native);
-    setShowEmojiPicker(false);
-  };
+  
 
   const handleReply = (msg) => {
     setReplyTo(msg);
@@ -628,21 +623,7 @@ const ChatInterface = ({ loggedInUser }) => {
                 </IconButton>
               </div>
             )}
-            {/* Chat input with emoji */}
             <div className="chat-input">
-              <button
-                type="button"
-                className="emoji-btn"
-                onClick={() => setShowEmojiPicker((v) => !v)}
-                style={{ marginRight: 8, fontSize: 22, background: "none", border: "none", cursor: "pointer" }}
-              >
-                😊
-              </button>
-              {showEmojiPicker && (
-                <div style={{ position: "absolute", bottom: 60, left: 20, zIndex: 100 }}>
-                  <Picker onEmojiSelect={addEmoji} theme="light" />
-                </div>
-              )}
               <input
                 type="text"
                 placeholder="Type a message..."
