@@ -1,0 +1,87 @@
+/* Add Container */
+.add-container {
+  background: rgba(255, 255, 255, 0.95); /* Slightly less transparency for clarity */
+  padding: 40px;
+  margin: 80px auto;
+  border-radius: 15px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+  width: 450px;
+  gap: 25px;
+  animation: fadeIn 0.8s ease-in-out;
+  backdrop-filter: blur(5px);
+  transition: transform 0.3s ease;
+}
+
+.add-container:hover {
+  transform: translateY(-5px);
+}
+
+/* Image Styling */
+.add-container img {
+  width: 100%;
+  height: 75%;
+  object-fit: cover;
+  border-radius: 10px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease;
+}
+
+.add-container img:hover {
+  transform: scale(1.02);
+}
+
+/* Input Fields for Description and Location */
+.input-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.input-fields .MuiInputBase-root {
+  border-radius: 8px;
+}
+
+/* Post Button Container */
+.post-button {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  gap: 20px;
+}
+
+/* Typography for No Image State */
+.add-container h3 {
+  font-family: 'Roboto', sans-serif;
+  font-size: 24px;
+  font-weight: 500;
+  color: #555;
+  text-align: center;
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* Dark Mode Styling */
+.app-container.dark .add-container {
+  background: rgba(50, 50, 50, 0.9);
+  color: #eee;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+}
+
+.app-container.dark .add-container h3 {
+  color: #ccc;
+}
+
+.app-container.dark .add-container img {
+  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1);
+}
+
+/* Responsive Adjustments */
+@media (max-width: 480px) {
+  .add-container {
+    width: 90%;
+    padding: 20px;
+  }
+}

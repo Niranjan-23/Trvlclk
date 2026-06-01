@@ -1,0 +1,423 @@
+/* Fade In Animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Slide Up Animation for Post Items */
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Modal Fade and Scale Animation */
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Profile Container */
+.profile-container {
+  width: 70%;
+  max-width: 1200px;
+  margin: 40px auto;
+  padding: 20px;
+  animation: fadeIn 0.8s ease-in-out;
+  position: relative;
+  min-height: 100vh;
+}
+
+/* Modal Overlay for Followers/Following/Post */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  backdrop-filter: blur(10px);
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+  transition: opacity 0.3s ease;
+  will-change: opacity;
+}
+
+.modal-overlay.visible {
+  display: flex; /* Make it visible */
+  opacity: 1;
+}
+
+/* List Container for Followers/Following */
+.list-container {
+  background: #fff;
+  padding: 20px;
+  border-radius: 10px;
+  max-width: 400px;
+  width: 90%;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+  position: relative;
+  animation: modalFadeIn 0.3s ease-out;
+  z-index: 1001;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+/* Post Overlay Container */
+.post-overlay-container {
+  padding: 0;
+  width: 90%;
+  max-width: 800px;
+  position: relative;
+  animation: modalFadeIn 0.3s ease-out;
+  z-index: 1001;
+  max-height: 90vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  transition: max-height 0.3s ease;
+}
+
+/* Ensure post wrapper fits within the container */
+.post-overlay-container .post-wrapper {
+  width: 100%;
+  max-width: 100%;
+  flex-shrink: 0;
+}
+
+/* When comments are shown, ensure full visibility */
+.post-overlay-container:has(.comment-area) {
+  max-height: 90vh;
+  justify-content: flex-start;
+  padding-bottom: 15px;
+}
+
+/* Adjust comment area in overlay */
+.post-overlay-container .comment-area {
+  background: rgba(255, 255, 255, 0.9);
+  padding-top: 20px;
+  border-radius: 0 0 10px 10px;
+  width: 100%;
+  padding: 10px;
+  flex-grow: 1;
+  overflow-y: auto;
+}
+
+/* Cross button styling */
+.post-overlay-container .MuiIconButton-root {
+  position: absolute;
+  top: -110px; /* Moved further outside (was -40px) */
+  right: -100px; /* Moved further outside (was -40px) */
+  color: white;
+  z-index: 1002;
+  background: none; /* Removed background */
+  padding: 8px;
+}
+
+/* List Header */
+.list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+}
+
+/* List Content */
+.list-content {
+  max-height: 200px;
+  overflow-y: auto;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.list-content::-webkit-scrollbar {
+  display: none;
+}
+
+/* List Item for Followers/Following */
+.list-item {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  opacity: 0;
+  animation: fadeIn 0.3s ease-out forwards;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+.list-item:hover {
+  transform: scale(1.02);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  background-color: #f5f5f5;
+}
+
+.list-item img {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  margin-right: 10px;
+  object-fit: cover;
+}
+
+.list-item span {
+  font-size: 16px;
+  color: #333;
+}
+
+/* Profile Header */
+.profile-header {
+  display: flex;
+  align-items: center;
+  padding-bottom: 20px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid #ddd;
+}
+
+/* Profile Image */
+.profile-image-wrapper {
+  flex-shrink: 0;
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  overflow: hidden;
+  margin-right: 20px;
+}
+
+.profile-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Profile Details */
+.profile-details {
+  flex: 1;
+}
+
+.profile-name {
+  font-size: 32px;
+  color: #333;
+  margin-bottom: 5px;
+}
+
+.profile-username {
+  font-size: 18px;
+  color: #777;
+  margin-bottom: 10px;
+}
+
+.profile-bio {
+  font-size: 20px;
+  color: #555;
+  margin-bottom: 15px;
+}
+
+.profile-stats {
+  display: flex;
+  gap: 30px;
+  margin-bottom: 20px;
+}
+
+.profile-stats div {
+  font-size: 18px;
+  color: #333;
+}
+
+/* Edit Profile Button */
+.edit-profile-button {
+  background-color: #3498db;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  padding: 8px 16px;
+  font-size: 14px;
+  cursor: pointer;
+  border-bottom: 2px solid #2980b9;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+}
+
+.edit-profile-button:hover {
+  background-color: #2980b9;
+  transform: scale(1.05);
+}
+
+.edit-profile-button:active {
+  transform: scale(0.95);
+}
+
+/* Post Grid */
+.post-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr); /* Fixed to 3 columns */
+  gap: 20px;
+}
+
+/* Post Item */
+.post-item {
+  position: relative;
+  overflow: hidden;
+  border-radius: 15px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  animation: slideUp 0.5s ease-in-out;
+  transition: transform 0.3s ease;
+  aspect-ratio: 1 / 1;
+  height: auto;
+  will-change: transform, opacity;
+}
+
+.post-item:hover {
+  transform: scale(1.03);
+}
+
+.post-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  border-radius: 15px;
+  transition: transform 0.3s ease;
+  cursor: pointer;
+}
+
+.post-item:hover .post-image {
+  transform: scale(1.05);
+}
+
+/* Dark Mode Styles */
+.app-container.dark .profile-container {
+  color: #eee;
+}
+
+.app-container.dark .profile-name,
+.app-container.dark .profile-username,
+.app-container.dark .profile-bio,
+.app-container.dark .profile-stats div {
+  color: #fff;
+}
+
+.app-container.dark .profile-btn .profile-name {
+  color: #fff !important;
+}
+
+.app-container.dark .list-container {
+  background-color: #222;
+  color: #f9f2f2;
+}
+
+.app-container.dark .list-item span {
+  color: #f5f5f5;
+}
+
+.app-container.dark .list-item:hover {
+  transform: scale(1.02);
+  box-shadow: 0 2px 4px rgba(255, 255, 255, 0.1);
+  background-color: #444;
+}
+
+.app-container.dark .edit-profile-button {
+  background-color: #5dade2;
+}
+
+.app-container.dark .edit-profile-button:hover {
+  background-color: #3498db;
+}
+
+.app-container.dark .comment-area {
+  background: rgba(51, 51, 51, 0.9);
+}
+
+.app-container.dark .post-item {
+  background-color: #222;
+}
+
+.app-container.dark .post-image {
+  filter: brightness(0.8);
+}
+
+/* Responsive Adjustments */
+@media (min-width: 1200px) {
+  .post-grid {
+    grid-template-columns: repeat(3, 1fr); /* Still 3 columns */
+  }
+}
+
+@media (max-width: 768px) {
+  .profile-container {
+    width: 90%;
+    padding: 10px;
+  }
+
+  .profile-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .profile-image-wrapper {
+    width: 150px;
+    height: 150px;
+    margin-right: 0;
+    margin-bottom: 15px;
+  }
+
+  .profile-name {
+    font-size: 24px;
+  }
+
+  .profile-username {
+    font-size: 16px;
+  }
+
+  .profile-bio {
+    font-size: 18px;
+  }
+
+  .profile-stats {
+    gap: 15px;
+    flex-wrap: wrap;
+  }
+
+  .post-grid {
+    grid-template-columns: repeat(2, 1fr); /* 2 columns on tablets */
+    gap: 10px;
+  }
+
+  .post-overlay-container {
+    max-width: 90%;
+    max-height: 80vh;
+  }
+}
+
+@media (max-width: 480px) {
+  .post-grid {
+    grid-template-columns: 1fr; /* 1 column on small screens */
+    gap: 10px;
+  }
+
+  .post-overlay-container {
+    max-width: 95%;
+    max-height: 75vh;
+  }
+
+  .post-overlay-container .post-wrapper,
+  .post-overlay-container .comment-area {
+    max-width: 100%;
+  }
+}

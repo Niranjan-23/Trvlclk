@@ -1,0 +1,211 @@
+/* Fade In Animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Slide Up Animation for Profile Items */
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Overall container styling */
+.search-container {
+  max-width: 70%;
+  min-width: 50%;
+  min-height: 50%;
+  padding: 40px 30px;
+  margin: 20px auto 0; /* Reduced from 60px to 20px */
+  animation: fadeIn 0.8s ease-in-out;
+  transition: transform 0.3s ease; /* Smooth container hover */
+}
+
+.search-container:hover {
+  transform: translateY(-5px); /* Slight lift on hover */
+}
+
+/* Dark Mode Styling for Container */
+.app-container.dark .search-container {
+  color: #eee;
+}
+
+/* Search Bar Styling */
+.search-container form {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 20px;
+  transition: transform 0.3s ease; /* Smooth form animation */
+}
+
+.search-container form:hover {
+  transform: scale(1.02); /* Subtle scale on hover */
+}
+
+.search-container .text {
+  width: 70%;
+  margin-right: 10px;
+}
+
+.search-container .text input {
+  border-radius: 10px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease; /* Input animations */
+}
+
+.search-container .text input:focus {
+  transform: scale(1.01); /* Slight scale on focus */
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+}
+
+.search-container .MuiIconButton-root {
+  padding: 8px;
+  transition: transform 0.2s ease; /* Icon button animation */
+}
+
+.search-container .MuiIconButton-root:hover {
+  transform: rotate(15deg); /* Playful tilt on hover */
+}
+
+.app-container.dark .search-container .text input {
+  background-color: #444;
+  color: #eee;
+}
+
+.app-container.dark .search-container .MuiIconButton-root {
+  color: #eee;
+}
+
+/* Profile Items */
+.profile-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 15px;
+  margin-bottom: 10px;
+  border-radius: 10px;
+  animation: slideUp 0.5s ease-in-out; /* Slide up for each item */
+  transition: transform 0.3s ease, box-shadow 0.3s ease; /* Smooth hover */
+}
+
+.profile-item:hover {
+  transform: scale(1.02); /* Slight scale on hover */
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow instead of background */
+}
+
+.app-container.dark .profile-item:hover {
+  box-shadow: 0 2px 6px rgba(255, 255, 255, 0.1); /* Dark mode shadow */
+}
+
+/* Avatar Styling */
+.avatar {
+  width: 40px;
+  height: 40px;
+  margin-right: 10px;
+  border-radius: 50%;
+  object-fit: cover; /* Ensures image fills the round shape */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  transition: transform 0.3s ease; /* Smooth avatar animation */
+}
+
+.profile-item:hover .avatar {
+  transform: scale(1.1) rotate(5deg); /* Scale and slight tilt on hover */
+}
+
+.app-container.dark .avatar {
+  box-shadow: 0 2px 4px rgba(255, 255, 255, 0.1);
+}
+
+/* Profile Content */
+.profile-content {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-grow: 1;
+  transition: transform 0.3s ease; /* Smooth content animation */
+}
+
+.profile-item:hover .profile-content {
+  transform: translateX(5px); /* Slight shift right on hover */
+}
+
+/* Profile Text */
+.profile-content span {
+  font-weight: bold;
+  margin-right: 10px;
+  transition: transform 0.2s ease; /* Text animation */
+}
+
+.profile-item:hover .profile-content span {
+  transform: scale(1.05); /* Slight text scale on hover */
+}
+
+.app-container.dark .profile-content span {
+  color: #eee;
+}
+
+/* Buttons Container */
+.button-group {
+  display: flex;
+  gap: 12px;
+}
+
+.button-group button {
+  transition: transform 0.2s ease; /* Smooth button animation */
+}
+
+.button-group button:hover {
+  transform: scale(1.1); /* Scale up on hover */
+}
+
+.button-group button:active {
+  transform: scale(0.95); /* Slight press effect */
+}
+
+/* Error Message */
+.search-container .error {
+  color: red;
+  text-align: center;
+  margin-top: 10px;
+  animation: fadeIn 0.5s ease-in-out; /* Fade in for error */
+}
+
+.app-container.dark .search-container .error {
+  color: #ff6666;
+}
+
+/* No Profiles Message (if needed) */
+.search-container .profile-box:empty + p {
+  text-align: center;
+  font-size: 1.2em;
+  color: #888;
+  animation: fadeIn 0.5s ease-in-out; /* Fade in for no profiles */
+}
+
+.app-container.dark .search-container .profile-box:empty + p {
+  color: #ccc;
+}
+
+/* Profile Item Image */
+.profile-item img {
+  width: 40px;
+  height: 40px;
+  object-fit: cover; /* Ensures image fills the shape */
+  transition: transform 0.3s ease; /* Smooth image animation */
+}
+
+.profile-item:hover img {
+  transform: scale(1.05) rotate(-5deg); /* Scale and slight tilt on hover */
+}

@@ -1,0 +1,197 @@
+/* Fade In Animation */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Pop In Animation for Modal */
+@keyframes popIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Overlay */
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 240px; /* Align with .main-content’s left margin */
+  right: 0; /* Extend to right edge of viewport */
+  bottom: 0; /* Extend to bottom of viewport */
+  width: calc(100vw - 240px); /* Match .main-content width */
+  height: 100vh; /* Full viewport height */
+  backdrop-filter: blur(10px);
+  background-color: rgba(0, 0, 0, 0.2);
+  z-index: 100; /* Above .main-content content */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.3s ease; /* Smooth overlay transition */
+}
+
+.overlay:hover {
+  background-color: rgba(0, 0, 0, 0.25); /* Slight darkening on hover */
+}
+
+/* Edit Profile Container */
+.edit-profile-container {
+  padding: 30px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, #ffffff, #f0f0f0);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+  width: 100%;
+  max-width: 450px;
+  z-index: 101; /* Above overlay */
+  animation: popIn 0.5s ease-out;
+  transition: transform 0.3s ease, box-shadow 0.3s ease; /* Smooth hover */
+  position: relative; /* Ensure stacking context */
+}
+
+.edit-profile-container:hover {
+  transform: scale(1.02); /* Slight scale on hover */
+  box-shadow: 0 10px 35px rgba(0, 0, 0, 0.15); /* Enhanced shadow */
+}
+
+/* Heading */
+.edit-profile-container h2 {
+  text-align: center;
+  margin-bottom: 20px;
+  font-size: 1.8em;
+  transition: transform 0.2s ease; /* Smooth heading animation */
+}
+
+.edit-profile-container:hover h2 {
+  transform: scale(1.05); /* Slight scale on hover */
+}
+
+/* Form Group */
+.form-group {
+  margin-bottom: 15px;
+  animation: fadeIn 0.5s ease-in-out; /* Fade in for each field */
+}
+
+.form-group label {
+  display: block;
+  font-weight: bold;
+  margin-bottom: 5px;
+  transition: transform 0.2s ease; /* Smooth label animation */
+}
+
+.form-group:hover label {
+  transform: translateX(5px); /* Slight shift on hover */
+}
+
+.form-group input,
+.form-group textarea {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease; /* Smooth input animation */
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+  transform: scale(1.01); /* Slight scale on focus */
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1); /* Subtle shadow */
+}
+
+/* Button Group */
+.button-group {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+
+/* Save Button */
+.save-button {
+  background-color: #3897f0;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease; /* Smooth animation */
+}
+
+.save-button:hover {
+  transform: scale(1.05); /* Slight scale instead of color change */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* Shadow instead of bg change */
+}
+
+.save-button:active {
+  transform: scale(0.95); /* Slight press effect */
+}
+
+/* Cancel Button */
+.cancel-button {
+  background-color: #f44336;
+  color: white;
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease; /* Smooth animation */
+}
+
+.cancel-button:hover {
+  transform: scale(1.05); /* Slight scale instead of color change */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* Shadow instead of bg change */
+}
+
+.cancel-button:active {
+  transform: scale(0.95); /* Slight press effect */
+}
+
+/* Dark Mode for Edit Profile Component */
+.app-container.dark .edit-profile-container {
+  background: linear-gradient(135deg, #333, #444); /* Darker gradient */
+  color: #fff; /* White text */
+  border: 1px solid rgba(255, 255, 255, 0.2); /* Light border */
+}
+
+.app-container.dark .edit-profile-container:hover {
+  box-shadow: 0 10px 35px rgba(0, 0, 0, 0.5); /* Dark mode shadow */
+}
+
+/* Dark Mode for Buttons */
+.app-container.dark .save-button {
+  background-color: #4caf50;
+}
+
+.app-container.dark .cancel-button {
+  background-color: #e91e63;
+}
+
+.app-container.dark .save-button:hover {
+  transform: scale(1.05); /* Consistent animation */
+  box-shadow: 0 2px 4px rgba(255, 255, 255, 0.2); /* Shadow instead of bg change */
+}
+
+.app-container.dark .cancel-button:hover {
+  transform: scale(1.05); /* Consistent animation */
+  box-shadow: 0 2px 4px rgba(255, 255, 255, 0.2); /* Shadow instead of bg change */
+}
+
+/* Additional dark mode tweaks */
+.app-container.dark .form-group input,
+.app-container.dark .form-group textarea {
+  background-color: #555;
+  border: 1px solid #777;
+  color: #fff;
+}
+
+.app-container.dark .overlay {
+  background-color: rgba(0, 0, 0, 0.7); /* Darker overlay for dark mode */
+}

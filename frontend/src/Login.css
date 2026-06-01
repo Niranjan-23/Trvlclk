@@ -1,0 +1,239 @@
+/* Fade In Animation for Container */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Scale Up Animation for Login Box */
+@keyframes scaleUp {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Fade Up Animation for Quote */
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Login Container */
+.login-container {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: background-color 0.5s ease; /* Smooth background transition */
+}
+
+/* Background Video */
+.background-video {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: -1;
+  animation: videoFade 1s ease-in; /* Gentle fade-in for video */
+  transition: filter 0.3s ease; /* Smooth filter transition */
+}
+
+.login-container:hover .background-video {
+  filter: brightness(0.9); /* Subtle dimming on hover */
+}
+
+/* Video Fade Animation */
+@keyframes videoFade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* Login Box */
+.login-box {
+  position: relative;
+  z-index: 1;
+  background: rgba(255, 255, 255, 0.9);
+  padding: 30px;
+  margin-top: 20px;
+  border-radius: 10px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  animation: scaleUp 0.6s ease-out; /* Scale-up effect on load */
+  transition: transform 0.3s ease, box-shadow 0.3s ease; /* Smooth hover effects */
+}
+
+.login-box:hover {
+  transform: translateY(-5px); /* Slight lift on hover */
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25); /* Enhanced shadow */
+}
+
+/* Header Title (for logo) */
+.header-title {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  margin-bottom: 10px;
+  transition: transform 0.3s ease; /* Smooth title animation */
+}
+
+.login-box:hover .header-title {
+  transform: scale(1.05); /* Subtle scale on hover */
+}
+
+/* Logo Image */
+.logo-image1 {
+  height: 130px; /* Matches your desired size */
+  width: auto; /* Maintain aspect ratio */
+  transition: transform 0.3s ease; /* Smooth transition for effects */
+}
+
+/* Optional: Add rotation on hover */
+.login-box:hover .logo-image {
+  transform: rotate(5deg); /* Slight rotation on hover */
+}
+
+/* Subtitle Text */
+.words {
+  font-size: 0.9rem;
+  color: #555;
+  text-align: center;
+  margin-bottom: 10px; /* Adjusted for quote spacing */
+  transition: color 0.3s ease; /* Smooth color transition */
+}
+
+.login-box:hover .words {
+  color: #333; /* Slightly darker on hover */
+}
+
+/* Travel Quote */
+.travel-quote {
+  font-family: 'Roboto', sans-serif;
+  font-size: 0.85rem;
+  font-style: italic;
+  color: #777; /* Softer gray */
+  text-align: center;
+  margin-bottom: 20px;
+  animation: fadeUp 0.8s ease-out; /* Gentle fade-up animation */
+  transition: color 0.3s ease; /* Smooth color transition */
+}
+
+.login-box:hover .travel-quote {
+  color: #555; /* Slightly darker on hover */
+}
+
+/* TextField Inputs */
+.MuiTextField-root {
+  transition: transform 0.2s ease; /* Smooth transform effect */
+}
+
+/* Standard Variant Fields */
+.login-field {
+  transition: transform 0.3s ease; /* Smooth field transition */
+}
+
+.login-field .MuiInput-root {
+  padding-bottom: 8px; /* Space for underline */
+}
+
+.login-field .MuiInput-underline:before {
+  border-bottom: 2px solid #ccc; /* Thicker underline */
+  transition: border-color 0.3s ease; /* Smooth underline transition */
+}
+
+.login-field .MuiInput-underline:after {
+  border-bottom: 2px solid #6200ea; /* Purple underline on focus */
+  transform: scaleX(1); /* Ensure no box effect, just underline */
+}
+
+.login-field:hover .MuiInput-underline:before {
+  border-bottom-color: #999; /* Darker gray on hover */
+}
+
+/* Remove Focus Box Effect */
+.login-field .MuiInput-underline.Mui-focused:after {
+  transform: scaleX(1); /* Keep underline only */
+  border-bottom: 2px solid #6200ea; /* Reinforce underline */
+}
+
+.login-field .MuiInput-underline.Mui-focused {
+  box-shadow: none; /* Remove any box shadow */
+}
+
+/* Button */
+.MuiButton-root {
+  transition: transform 0.3s ease, box-shadow 0.3s ease, background-color 0.3s ease; /* Smooth button effects */
+}
+
+.MuiButton-root:hover {
+  transform: translateY(-2px); /* Slight lift */
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); /* Enhanced shadow */
+}
+
+/* Error Message */
+.MuiTypography-colorError {
+  animation: slideIn 0.4s ease-out; /* Slide-in for error */
+}
+
+/* Slide In Animation for Error */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Sign Up/Login Text and Link */
+.signup-text {
+  font-family: 'Roboto', sans-serif;
+  color: #666;
+}
+
+.signup-link {
+  color: #6200ea;
+  text-decoration: none;
+  font-weight: 600;
+  transition: color 0.3s ease, transform 0.3s ease; /* Smooth link effects */
+}
+
+.signup-link:hover {
+  color: #4500a0; /* Darker purple */
+  transform: translateX(2px); /* Subtle shift */
+}
+
+/* Media query for mobile view */
+@media (max-width: 600px) {
+  .login-box {
+    width: 80%; /* Reduce the width of the login box */
+    padding: 20px; /* Reduce padding for smaller screens */
+    margin-top: 10px; /* Adjust margin if needed */
+  }
+}
