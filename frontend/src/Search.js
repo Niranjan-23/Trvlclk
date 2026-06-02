@@ -18,6 +18,25 @@ const debounce = (func, delay) => {
   };
 };
 
+const sortProfilesByFollowState = (profiles, currentUserId) => {
+  if (!Array.isArray(profiles)) return [];
+
+  const getIdList = (value) => (Array.isArray(value) ? value.map((item) => item.toString()) : []);
+
+  return [...profiles].sort((a, b) => {
+    const aFollowing = getIdList(a.followers).includes(currentUserId?.toString());
+    const bFollowing = getIdList(b.followers).includes(currentUserId?.toString());
+
+    // Anything the current user does not follow is high priority.
+    const aRank = aFollowing ? 1 : 0;
+    const bRank = bFollowing ? 1 : 0;
+
+    if (aRank !== bRank) return aRank - bRank;
+
+    return (a.name || "").localeCompare(b.name || "");
+  });
+};
+
 export default function Search() {
   const [searchQuery, setSearchQuery] = useState('');
   const [profiles, setProfiles] = useState([]);
@@ -61,7 +80,7 @@ export default function Search() {
         throw new Error('Failed to fetch users');
       }
       const data = await response.json();
-      setProfiles(data.users || []);
+      setProfiles(sortProfilesByFollowState(data.users || [], currentUser?._id));
       setError(null);
     } catch (err) {
       console.error('Error fetching users:', err);

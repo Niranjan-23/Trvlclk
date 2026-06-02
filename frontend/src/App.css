@@ -51,10 +51,15 @@ body, html {
 /* Main Content Area */
 .main-content {
   flex: 1;
-  margin-left: 240px;
+  margin-left: 0;
   padding: 20px;
+  padding-top: 112px; /* account for increased top nav height (92px + extra spacing) */
   overflow-y: auto;
   transition: background-color 0.3s ease;
+}
+
+@media (max-width: 600px) {
+  .main-content { padding-top: 56px; }
 }
 
 /* Toolbar (Logout and Dark Mode Buttons) */

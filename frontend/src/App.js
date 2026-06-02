@@ -252,7 +252,14 @@ const App = () => {
       ) : (
         <div className={isDarkMode ? "app-container dark" : "app-container light"}>
           {/* Desktop Nav */}
-          {!isMobile && <Nav />}
+          {!isMobile && (
+            <Nav
+              toggleTheme={toggleTheme}
+              isDarkMode={isDarkMode}
+              loggedInUser={loggedInUser}
+              handleLogout={handleLogout}
+            />
+          )}
           {/* Mobile Top Bar */}
           {isMobile && (
             <>
@@ -294,7 +301,13 @@ const App = () => {
                 onClose={() => setDrawerOpen(false)}
                 PaperProps={{ style: { width: 240 } }}
               >
-                <Nav onLinkClick={() => setDrawerOpen(false)} />
+                <Nav
+                  onLinkClick={() => setDrawerOpen(false)}
+                  toggleTheme={toggleTheme}
+                  isDarkMode={isDarkMode}
+                  loggedInUser={loggedInUser}
+                  handleLogout={handleLogout}
+                />
               </Drawer>
               <Routes>
                 <Route path="/messages/:recipientId?" element={<MessageComponent loggedInUser={loggedInUser} />} />
@@ -310,22 +323,7 @@ const App = () => {
             </>
           )}
           <div className="main-content">
-            {/* Desktop toolbar */}
-            {!isMobile && (
-              <div className="toolbar">
-                <Button onClick={toggleTheme} variant="outlined" color="inherit">
-                  {isDarkMode ? <Brightness7Icon /> : <Brightness4Icon />}
-                </Button>
-                <Button onClick={handleLogout} variant="outlined" color="inherit">
-                  <Avatar
-                    alt={loggedInUser?.username || "User"}
-                    src={loggedInUser?.profileImage || "/default-avatar.png"}
-                    className="avatar"
-                  />
-                  Logout
-                </Button>
-              </div>
-            )}
+            {/* Desktop toolbar moved into Nav */}
             <Routes>
               {isMobile ? (
                 <Route path="*" element={<Home />} />

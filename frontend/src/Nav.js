@@ -1,20 +1,12 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
-import Button from "@mui/material/Button";
-import Badge from "@mui/material/Badge";
-import HomeRoundedIcon from "@mui/icons-material/HomeRounded";
-import AddBoxOutlinedIcon from "@mui/icons-material/AddBoxOutlined";
-import PersonSearchTwoToneIcon from "@mui/icons-material/PersonSearchTwoTone";
-import NotificationsActiveTwoToneIcon from "@mui/icons-material/NotificationsActiveTwoTone";
-import AccountCircleTwoToneIcon from "@mui/icons-material/AccountCircleTwoTone";
-import ChatBubbleOutlineIcon from "@mui/icons-material/ChatBubbleOutline";
-import RoomOutlinedIcon from "@mui/icons-material/RoomOutlined"; // Import location icon
-import API_BASE_URL from "./config";
+import { Link, NavLink } from "react-router-dom";
 import "./Nav.css";
 import logo from "./assets/logo.png";
+import API_BASE_URL from "./config";
 
-const Nav = ({ onLinkClick }) => {
-  const currentUser = JSON.parse(localStorage.getItem("loggedInUser") || "null");
+const Nav = ({ onLinkClick, toggleTheme, isDarkMode, loggedInUser: propUser, handleLogout }) => {
+  const storedUser = JSON.parse(localStorage.getItem("loggedInUser") || "null");
+  const currentUser = propUser || storedUser;
   const [notificationCount, setNotificationCount] = useState(0);
 
   const fetchNotificationCount = async () => {
@@ -42,59 +34,60 @@ const Nav = ({ onLinkClick }) => {
     return () => window.removeEventListener("userUpdated", handleUserUpdated);
   }, [currentUser?._id]);
 
+  const navLinkClassName = ({ isActive }) => `nav-item${isActive ? " nav-item-active" : ""}`;
+
   return (
-    <div className="nav-container">
-      <Link to="/">
-        <img src={logo} alt="TrvlClk Logo" className="logo-image" />
-      </Link>
-      <div className="nav-links">
-        <Link to="/" className="nav-link" onClick={onLinkClick}>
-          <Button className="nav-button" color="success" variant="text">
-            <HomeRoundedIcon fontSize="large" />
+    <header className="nav-container">
+      <div className="nav-left">
+        <Link to="/" onClick={onLinkClick} className="logo-link">
+          <img src={logo} alt="TrvlClk Logo" className="logo-image" />
+        </Link>
+        <nav className="nav-center">
+          <NavLink to="/" className={navLinkClassName} onClick={onLinkClick} end>
             Home
-          </Button>
-        </Link>
-        <Link to="/Notification" className="nav-link" onClick={onLinkClick}>
-          <Button color="success" className="nav-button" variant="text">
-            <Badge badgeContent={notificationCount} color="error">
-              <NotificationsActiveTwoToneIcon fontSize="large" />
-            </Badge>
-            Notification
-          </Button>
-        </Link>
-        <Link to="/messages" className="nav-link" onClick={onLinkClick}>
-          <Button color="success" className="nav-button" variant="text">
-            <ChatBubbleOutlineIcon fontSize="large" />
+          </NavLink>
+          <NavLink to="/Notification" className={navLinkClassName} onClick={onLinkClick}>
+            Notification{notificationCount > 0 && <span className="notif-badge">{notificationCount}</span>}
+          </NavLink>
+          <NavLink to="/messages" className={navLinkClassName} onClick={onLinkClick}>
             Messages
-          </Button>
-        </Link>
-        <Link to="/Add-post" className="nav-link" onClick={onLinkClick}>
-          <Button color="success" className="nav-button" variant="text">
-            <AddBoxOutlinedIcon fontSize="large" />
+          </NavLink>
+          <NavLink to="/Add-post" className={navLinkClassName} onClick={onLinkClick}>
             Add Post
-          </Button>
-        </Link>
-        <Link to="/Search" className="nav-link" onClick={onLinkClick}>
-          <Button color="success" className="nav-button" variant="text">
-            <PersonSearchTwoToneIcon fontSize="large" />
+          </NavLink>
+          <NavLink to="/Search" className={navLinkClassName} onClick={onLinkClick}>
             Search
-          </Button>
-        </Link>
-        <Link to="/ProfileSetting" className="nav-link" onClick={onLinkClick}>
-          <Button color="success" className="nav-button" variant="text">
-            <AccountCircleTwoToneIcon fontSize="large" />
+          </NavLink>
+          <NavLink to="/ProfileSetting" className={navLinkClassName} onClick={onLinkClick}>
             Profile
-          </Button>
-        </Link>
-        {/* Map Button Added */}
-        <Link to="/map" className="nav-link" onClick={onLinkClick}>
-          <Button color="success" className="nav-button" variant="text">
-            <RoomOutlinedIcon fontSize="large" />
+          </NavLink>
+          <NavLink to="/map" className={navLinkClassName} onClick={onLinkClick}>
             Map
-          </Button>
-        </Link>
+          </NavLink>
+        </nav>
       </div>
-    </div>
+      <div className="nav-right">
+        <button
+          aria-label="toggle-theme"
+          className="theme-toggle"
+          onClick={() => (toggleTheme ? toggleTheme() : document.body.classList.toggle("dark"))}
+        >
+          {isDarkMode ? "🌙" : "🌞"}
+        </button>
+        <div className="nav-avatar">
+          {currentUser ? (
+            <img
+              src={currentUser.profileImage || "/default-avatar.png"}
+              alt={currentUser.username || "User"}
+            />
+          ) : (
+            <Link to="/" className="nav-cta" onClick={onLinkClick}>
+              Sign In
+            </Link>
+          )}
+        </div>
+      </div>
+    </header>
   );
 };
 
