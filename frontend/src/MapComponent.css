@@ -1,0 +1,8 @@
+.posts-grid {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.posts-grid::-webkit-scrollbar {
+  display: none;
+}

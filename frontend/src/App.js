@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { BrowserRouter as Router, Route, Routes, Navigate, useParams } from "react-router-dom";
+import { BrowserRouter as Router, Route, Routes, Navigate, useParams, useNavigate } from "react-router-dom";
 import Nav from "./Nav";
 import Post from "./Post";
 import LoginPage from "./LoginPage";
@@ -159,6 +159,56 @@ const App = () => {
     </div>
   );
 
+  const PostDetail = () => {
+    const { postId } = useParams();
+    const navigate = useNavigate();
+    const [post, setPost] = useState(null);
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
+      const fetchPost = async () => {
+        try {
+          const response = await fetch(`${API_BASE_URL}/api/posts/${postId}`, {
+            headers: {
+              Authorization: `Bearer ${getTokenFromLocalStorage()}`,
+            },
+          });
+
+          if (!response.ok) {
+            throw new Error(`Failed to fetch post: ${response.status}`);
+          }
+
+          const data = await response.json();
+          setPost(data.post);
+        } catch (error) {
+          console.error("Error fetching post detail:", error);
+          setPost(null);
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      if (postId) {
+        fetchPost();
+      }
+    }, [postId]);
+
+    return (
+      <div className="posts-container">
+        <Button onClick={() => navigate(-1)} style={{ marginBottom: 16 }}>
+          Back
+        </Button>
+        {loading ? (
+          <p>Loading post...</p>
+        ) : post ? (
+          <Post post={post} loggedInUser={loggedInUser} />
+        ) : (
+          <p>Post not found</p>
+        )}
+      </div>
+    );
+  };
+
   const SearchProfile = () => (
     <div className="posts-container">
       <Search />
@@ -317,6 +367,7 @@ const App = () => {
                 <Route path="/Search" element={<SearchProfile />} />
                 <Route path="/ProfileSetting" element={<ProfileComp userId={loggedInUser._id} />} />
                 <Route path="/user/:userId" element={<OtherUserProfile loggedInUser={loggedInUser} />} />
+                <Route path="/posts/:postId" element={<PostDetail />} />
                 <Route path="/map" element={<MapComponent loggedInUser={loggedInUser} />} />
                 <Route path="*" element={<div>404 - Page Not Found</div>} />
               </Routes>
@@ -336,6 +387,7 @@ const App = () => {
                   <Route path="/Search" element={<SearchProfile />} />
                   <Route path="/ProfileSetting" element={<ProfileComp userId={loggedInUser._id} />} />
                   <Route path="/user/:userId" element={<OtherUserProfile loggedInUser={loggedInUser} />} />
+                  <Route path="/posts/:postId" element={<PostDetail />} />
                   <Route path="/map" element={<MapComponent loggedInUser={loggedInUser} />} />
                   <Route path="*" element={<div>404 - Page Not Found</div>} />
                 </>

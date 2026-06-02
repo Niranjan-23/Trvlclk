@@ -16,9 +16,7 @@ router.get("/timeline", getTimelinePosts);
 router.get("/posts/user/:userId", getUserPosts);
 router.post("/posts/:postId/like", likePost);
 router.get("/posts/:postId", async (req, res) => {
- 体育在线
-
-System: try {
+  try {
     const post = await Post.findById(req.params.postId).populate(
       "user",
       "username profileImage"

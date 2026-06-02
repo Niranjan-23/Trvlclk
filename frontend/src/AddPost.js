@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import Button from "@mui/material/Button";
 import BackupTwoToneIcon from "@mui/icons-material/BackupTwoTone";
 import FileUploadOutlinedIcon from "@mui/icons-material/FileUploadOutlined";
@@ -83,6 +83,11 @@ export default function AddPost({ user, onPostAdded = () => {} }) {
       setLocationSuggestions([]);
       return;
     }
+    // don't attempt when offline
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      setLocationSuggestions([]);
+      return;
+    }
     try {
       const res = await fetch(
         `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&addressdetails=1&limit=5&accept-language=en`
@@ -96,9 +101,18 @@ export default function AddPost({ user, onPostAdded = () => {} }) {
         }))
       );
     } catch (err) {
-      console.error("Failed to fetch location suggestions:", err);
+      // suppress noisy errors (CORS/network); keep suggestions empty
+      console.debug("Failed to fetch location suggestions:", err);
       setLocationSuggestions([]);
     }
+  };
+
+  const debounceRef = useRef(null);
+  const debouncedFetchLocationSuggestions = (query) => {
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      fetchLocationSuggestions(query);
+    }, 400);
   };
 
   return (
@@ -120,7 +134,7 @@ export default function AddPost({ user, onPostAdded = () => {} }) {
               options={locationSuggestions}
               onInputChange={(e, value) => {
                 setLocation(value);
-                fetchLocationSuggestions(value);
+                debouncedFetchLocationSuggestions(value);
               }}
               onChange={(e, value) => {
                 if (typeof value === "string") {
