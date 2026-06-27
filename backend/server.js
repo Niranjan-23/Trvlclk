@@ -71,6 +71,16 @@ io.on('connection', (socket) => {
   });
 });
 
+// Health Check Endpoint
+app.get('/health', (req, res) => {
+  res.status(200).json({
+    status: 'healthy',
+    message: 'Server is running',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime()
+  });
+});
+
 // Routes
 const authRoutes = require('./routes/auth');
 const usersRoutes = require('./routes/users');

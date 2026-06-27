@@ -1,0 +1,21 @@
+name: Keep TrvlClk Backend Awake
+
+on:
+  schedule:
+    # Every 10 minutes
+    - cron: "*/10 * * * *"
+
+  # Allows manual testing from GitHub
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Ping Render Health Endpoint
+        run: |
+          echo "Pinging Render..."
+          curl -fsS https://trvlclk-backend-hz2c.onrender.com/health
+          echo ""
+          echo "✅ Backend is awake!"
