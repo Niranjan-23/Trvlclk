@@ -6,7 +6,7 @@ import SendTwoToneIcon from '@mui/icons-material/SendTwoTone';
 import LocationOnIcon from '@mui/icons-material/LocationOn';
 import Button from '@mui/material/Button';
 import Comment from './Comment';
-import { Avatar } from '@mui/material';
+import { Avatar, IconButton } from '@mui/material';
 import API_BASE_URL from './config';
 import { useNavigate } from 'react-router-dom';
 import Dialog from '@mui/material/Dialog';
@@ -24,25 +24,17 @@ const Post = ({ post, loggedInUser, showCommentsByDefault = false }) => {
   const postContainerRef = useRef(null);
   const navigate = useNavigate();
 
-  const hasLiked = postLikes.some(id => id.toString() === loggedInUser._id);
-
-  useEffect(() => {
-    if (showComments && postContainerRef.current) {
-      // Example: adjust comment area height if needed
-    }
-  }, [showComments]);
+  const hasLiked = postLikes.some(id => id.toString() === loggedInUser?._id);
 
   const handleLike = async () => {
+    if (!loggedInUser?._id) return;
     try {
       const response = await fetch(`${API_BASE_URL}/api/posts/${post._id}/like`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ userId: loggedInUser._id }),
       });
-      if (!response.ok) {
-        console.error('Error liking post');
-        return;
-      }
+      if (!response.ok) return;
       const data = await response.json();
       setPostLikes(data.post.likes);
     } catch (error) {
@@ -55,14 +47,16 @@ const Post = ({ post, loggedInUser, showCommentsByDefault = false }) => {
   };
 
   const handleProfileClick = () => {
-    if (post.user._id === loggedInUser._id) {
-      navigate(`/profile`);
+    if (!post?.user?._id) return;
+    if (post.user._id === loggedInUser?._id) {
+      navigate(`/ProfileSetting`);
     } else {
       navigate(`/user/${post.user._id}`);
     }
   };
 
   const fetchFollowers = async () => {
+    if (!loggedInUser?._id) return;
     try {
       const response = await fetch(`${API_BASE_URL}/api/user/${loggedInUser._id}`, {
         headers: {
@@ -70,10 +64,7 @@ const Post = ({ post, loggedInUser, showCommentsByDefault = false }) => {
           "Content-Type": "application/json",
         },
       });
-      if (!response.ok) {
-        console.error("Failed to fetch followers");
-        return;
-      }
+      if (!response.ok) return;
       const data = await response.json();
       const fetchedFollowers = data.user.followers || [];
       const mappedFollowers = fetchedFollowers.map(follower => ({
@@ -117,14 +108,10 @@ const Post = ({ post, loggedInUser, showCommentsByDefault = false }) => {
           }
         }),
       });
-
-      if (!response.ok) {
-        console.error('Failed to send post preview');
-        return;
+      if (response.ok) {
+        setOpenSendDialog(false);
+        alert(`Shared post with ${follower.name}!`);
       }
-
-      console.log('Post sent successfully');
-      setOpenSendDialog(false);
     } catch (error) {
       console.error("Error sending post preview:", error);
     }
@@ -133,65 +120,82 @@ const Post = ({ post, loggedInUser, showCommentsByDefault = false }) => {
   return (
     <div className="post-wrapper">
       <div className="post-container" ref={postContainerRef}>
-        <div className="post-content">
+        {/* Post Top Header */}
+        <div className="post-top-header">
+          <div className="post-user-info" onClick={handleProfileClick}>
+            <Avatar
+              alt={post.user?.username || 'Unknown'}
+              src={post.user?.profileImage || '/default-avatar.png'}
+              className="post-header-avatar"
+            />
+            <div className="post-user-names">
+              <span className="post-author-name">{post.user?.username || 'Unknown'}</span>
+              {post.location && (
+                <span
+                  className="post-location-tag"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    navigate('/map', {
+                      state: {
+                        location: post.location,
+                        latitude: post.latitude,
+                        longitude: post.longitude,
+                      },
+                    });
+                  }}
+                >
+                  <LocationOnIcon style={{ fontSize: 13 }} /> {post.location}
+                </span>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Post Image */}
+        <div className="post-image-box">
           <img
             src={post.imageUrl || 'https://images.pexels.com/photos/8952192/pexels-photo-8952192.jpeg?auto=compress&cs=tinysrgb&w=600&lazy=load'}
             alt="Post content"
           />
-          <div className="action-bar">
-            <div className="action-buttons">
-              <Button onClick={handleLike} disabled={hasLiked} className="action-btn">
-                <FavoriteTwoToneIcon fontSize="medium" color={hasLiked ? 'error' : 'inherit'} />
+        </div>
+
+        {/* Action Bar & Details */}
+        <div className="post-bottom-area">
+          <div className="post-action-bar">
+            <div className="action-buttons-left">
+              <button onClick={handleLike} className={`post-action-icon-btn ${hasLiked ? 'liked' : ''}`}>
+                <FavoriteTwoToneIcon fontSize="medium" />
                 <span className="count">{postLikes.length}</span>
-              </Button>
-              <Button onClick={handleCommentToggle} className="action-btn">
+              </button>
+              <button onClick={handleCommentToggle} className="post-action-icon-btn">
                 <ChatBubbleTwoToneIcon fontSize="medium" />
-              </Button>
-              <Button onClick={handleSendClick} className="action-btn">
+              </button>
+              <button onClick={handleSendClick} className="post-action-icon-btn">
                 <SendTwoToneIcon fontSize="medium" />
-              </Button>
+              </button>
             </div>
-            <Button onClick={handleProfileClick} className="profile-btn">
-              <Avatar
-                alt={post.user?.username || 'Unknown'}
-                src={post.user?.profileImage || '/default-avatar.png'}
-                className="avatar"
-                sx={{ width: 30, height: 30 }}
-              />
-              <span className="profile-name">{post.user?.username || 'Unknown'}</span>
-            </Button>
           </div>
-          <div className="post-info">
-            {post.description && <p className="post-description">{post.description}</p>}
-            {post.location && (
-              <p
-                className="post-location"
-                onClick={() => navigate('/map', {
-                  state: {
-                    location: post.location,
-                    latitude: post.latitude,
-                    longitude: post.longitude,
-                  },
-                })}
-                style={{ cursor: "pointer", color: "#1976d2", textDecoration: "underline" }}
-              >
-                <LocationOnIcon fontSize="small" /> {post.location}
-              </p>
-            )}
-          </div>
+
+          {post.description && (
+            <div className="post-caption-box">
+              <span className="caption-username" onClick={handleProfileClick}>{post.user?.username}</span>
+              <span className="caption-text">{post.description}</span>
+            </div>
+          )}
         </div>
       </div>
+
       {showComments && (
         <div className="comment-area">
           <Comment postId={post._id} loggedInUser={loggedInUser} />
         </div>
       )}
 
-      <Dialog onClose={() => setOpenSendDialog(false)} open={openSendDialog}>
-        <DialogTitle>Select a follower to send the post preview</DialogTitle>
-        <List>
+      <Dialog onClose={() => setOpenSendDialog(false)} open={openSendDialog} className="share-dialog">
+        <DialogTitle className="share-dialog-title">Send post to...</DialogTitle>
+        <List className="share-followers-list">
           {followers.map(follower => (
-            <ListItem button onClick={() => handleFollowerSelect(follower)} key={follower.id}>
+            <ListItem button onClick={() => handleFollowerSelect(follower)} key={follower.id} className="share-follower-item">
               <ListItemAvatar>
                 <Avatar src={follower.profileImage} />
               </ListItemAvatar>

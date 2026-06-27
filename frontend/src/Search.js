@@ -9,7 +9,6 @@ import SearchIcon from '@mui/icons-material/Search';
 import './Search.css';
 import API_BASE_URL from './config';
 
-// Simple debounce function
 const debounce = (func, delay) => {
   let timeoutId;
   return (...args) => {
@@ -20,19 +19,14 @@ const debounce = (func, delay) => {
 
 const sortProfilesByFollowState = (profiles, currentUserId) => {
   if (!Array.isArray(profiles)) return [];
-
   const getIdList = (value) => (Array.isArray(value) ? value.map((item) => item.toString()) : []);
 
   return [...profiles].sort((a, b) => {
     const aFollowing = getIdList(a.followers).includes(currentUserId?.toString());
     const bFollowing = getIdList(b.followers).includes(currentUserId?.toString());
-
-    // Anything the current user does not follow is high priority.
     const aRank = aFollowing ? 1 : 0;
     const bRank = bFollowing ? 1 : 0;
-
     if (aRank !== bRank) return aRank - bRank;
-
     return (a.name || "").localeCompare(b.name || "");
   });
 };
@@ -46,14 +40,11 @@ export default function Search() {
   );
   const navigate = useNavigate();
 
-  // Fetch the current user's data from the backend
   const fetchCurrentUser = async () => {
     if (!currentUser || !currentUser._id) return;
     try {
       const response = await fetch(`${API_BASE_URL}/api/user/${currentUser._id}`);
-      if (!response.ok) {
-        throw new Error('Failed to fetch current user');
-      }
+      if (!response.ok) throw new Error('Failed to fetch current user');
       const data = await response.json();
       setCurrentUser(data.user);
       localStorage.setItem('loggedInUser', JSON.stringify(data.user));
@@ -62,7 +53,6 @@ export default function Search() {
     }
   };
 
-  // Fetch users based on search query
   const fetchUsers = async (query) => {
     if (!currentUser || !currentUser._id) {
       setProfiles([]);
@@ -74,11 +64,8 @@ export default function Search() {
       if (query && query.trim() !== '') {
         url += `&query=${encodeURIComponent(query)}`;
       }
-      console.log("Fetching users from:", url);
       const response = await fetch(url);
-      if (!response.ok) {
-        throw new Error('Failed to fetch users');
-      }
+      if (!response.ok) throw new Error('Failed to fetch users');
       const data = await response.json();
       setProfiles(sortProfilesByFollowState(data.users || [], currentUser?._id));
       setError(null);
@@ -91,7 +78,6 @@ export default function Search() {
 
   const debouncedFetchUsers = useCallback(debounce(fetchUsers, 300), [currentUser?._id]);
 
-  // On mount, refresh current user and profiles
   useEffect(() => {
     if (currentUser && currentUser._id) {
       fetchCurrentUser();
@@ -148,87 +134,91 @@ export default function Search() {
     }
   };
 
-  // Navigate to the user's profile, aligned with App.js and Post.js
   const handleProfileClick = (userId) => {
-    if (!userId) {
-      console.error("User ID is missing in profile data");
-      return;
-    }
+    if (!userId) return;
     if (userId === currentUser._id) {
-      navigate('/ProfileSetting'); // Navigate to own profile, matching App.js route
+      navigate('/ProfileSetting');
     } else {
-      navigate(`/user/${userId}`); // Navigate to other user's profile
+      navigate(`/user/${userId}`);
     }
   };
 
   return (
     <div className="search-container">
-      <form onSubmit={(e) => e.preventDefault()}>
+      <div className="search-header-box">
+        <h2>Explore & Search Profiles</h2>
+      </div>
+      <form onSubmit={(e) => e.preventDefault()} className="search-form">
         <TextField
           id="search-bar"
-          className="text"
+          className="search-input-field"
           value={searchQuery}
           onChange={handleSearchChange}
           label="Search Profile"
           variant="outlined"
-          placeholder="Search..."
+          placeholder="Type a name or username..."
           size="small"
+          fullWidth
         />
-        <IconButton type="submit" aria-label="search">
-          <SearchIcon style={{ fill: 'blue' }} />
+        <IconButton type="submit" aria-label="search" className="search-btn-icon">
+          <SearchIcon style={{ fill: 'currentColor' }} />
         </IconButton>
       </form>
       {error && <div className="error">{error}</div>}
       <div className="profile-box">
-        {profiles.map((profile) => {
-          const isFollowing =
-            profile.followers?.map((id) => id.toString()).includes(currentUser._id.toString());
-          const isRequested =
-            profile.followRequests?.map((id) => id.toString()).includes(currentUser._id.toString());
+        {profiles.length > 0 ? (
+          profiles.map((profile) => {
+            const isFollowing =
+              profile.followers?.map((id) => id.toString()).includes(currentUser._id.toString());
+            const isRequested =
+              profile.followRequests?.map((id) => id.toString()).includes(currentUser._id.toString());
 
-          return (
-            <div
-              key={profile._id}
-              className="profile-item"
-              onClick={() => handleProfileClick(profile._id)}
-              style={{ cursor: 'pointer' }}
-            >
-              <Avatar alt={profile.name} src={profile.profileImage} className="avatar" />
-              <div className="profile-content">
-                <span>{profile.name}</span>
-                <div
-                  className="button-group"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  {isFollowing ? (
-                    <Button
-                      onClick={() => handleUnfollow(profile._id)}
-                      size="small"
-                      variant="contained"
-                      color="secondary"
-                    >
-                      Unfollow
-                    </Button>
-                  ) : isRequested ? (
-                    <Button disabled size="small" variant="contained">
-                      Requested
-                    </Button>
-                  ) : (
-                    <Button
-                      onClick={() => handleFollow(profile._id)}
-                      size="small"
-                      variant="contained"
-                      color="primary"
-                      startIcon={<PersonAddAlt1Icon />}
-                    >
-                      Follow
-                    </Button>
-                  )}
+            return (
+              <div
+                key={profile._id}
+                className="profile-item"
+                onClick={() => handleProfileClick(profile._id)}
+              >
+                <Avatar alt={profile.name} src={profile.profileImage} className="search-avatar" />
+                <div className="profile-content">
+                  <div className="user-text-info">
+                    <span className="profile-name-text">{profile.name}</span>
+                    {profile.username && <span className="profile-username-text">@{profile.username}</span>}
+                  </div>
+                  <div
+                    className="button-group"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    {isFollowing ? (
+                      <Button
+                        onClick={() => handleUnfollow(profile._id)}
+                        size="small"
+                        className="search-action-btn unfollow-btn"
+                      >
+                        Unfollow
+                      </Button>
+                    ) : isRequested ? (
+                      <Button disabled size="small" className="search-action-btn requested-btn">
+                        Requested
+                      </Button>
+                    ) : (
+                      <Button
+                        onClick={() => handleFollow(profile._id)}
+                        size="small"
+                        className="search-action-btn follow-btn"
+                        startIcon={<PersonAddAlt1Icon fontSize="small" />}
+                      >
+                        Follow
+                      </Button>
+                    )}
+                  </div>
                 </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          })
+        ) : (
+          <p className="no-profiles-text">No profiles found</p>
+        )}
       </div>
     </div>
   );

@@ -5,7 +5,6 @@ import './Notification.css';
 import API_BASE_URL from './config';
 
 export default function Notification() {
-  // Use state for currentUser so that updates trigger re-render.
   const [currentUser, setCurrentUser] = useState(
     JSON.parse(localStorage.getItem('loggedInUser') || 'null')
   );
@@ -20,7 +19,6 @@ export default function Notification() {
         throw new Error('Failed to fetch follow requests');
       }
       const data = await response.json();
-      console.log('Fetched follow requests:', data);
       setPendingRequests(data.pendingFollowRequests || []);
       setAcceptedRequests(data.acceptedFollowRequests || []);
     } catch (error) {
@@ -30,7 +28,6 @@ export default function Notification() {
     }
   };
 
-  // Set up an event listener so that when "userUpdated" is dispatched, we update the user and refetch notifications.
   useEffect(() => {
     fetchFollowRequests();
 
@@ -45,7 +42,6 @@ export default function Notification() {
     };
   }, [currentUser?._id]);
 
-  // Handle Accept: calls the accept endpoint (which moves the request from pending to accepted).
   const handleAccept = async (requesterId) => {
     try {
       const response = await fetch(`${API_BASE_URL}/api/user/${currentUser._id}/followRequest/accept`, {
@@ -55,7 +51,7 @@ export default function Notification() {
       });
       const data = await response.json();
       if (response.ok) {
-        alert("Accepted! Now click 'Follow Back' to complete the mutual follow.");
+        alert("Accepted! Now click 'Follow Back' to complete mutual follow.");
         localStorage.setItem('loggedInUser', JSON.stringify(data.user));
         window.dispatchEvent(new Event('userUpdated'));
         fetchFollowRequests();
@@ -86,7 +82,6 @@ export default function Notification() {
     }
   };
 
-  // Handle Follow Back: calls the followBack endpoint, which removes the request from accepted.
   const handleFollowBack = async (requesterId) => {
     try {
       const response = await fetch(`${API_BASE_URL}/api/user/${currentUser._id}/followBack`, {
@@ -109,28 +104,32 @@ export default function Notification() {
   };
 
   if (!currentUser) {
-    return <div>Please log in to see notifications.</div>;
+    return <div className="notification-container"><p>Please log in to see notifications.</p></div>;
   }
 
   return (
     <div className="notification-container">
-      <h2>Incoming Follower Requests</h2>
+      <h2>Notification Center</h2>
       {pendingRequests.length === 0 && acceptedRequests.length === 0 ? (
-        <p>No new follower requests</p>
+        <div className="empty-noti-box">
+          <p>No new notifications or follow requests.</p>
+        </div>
       ) : (
-        <>
+        <div className="noti-list-box">
           {pendingRequests.map((request) => (
             <div key={request._id} className="notification-item">
-              <Avatar alt={request.name} src={request.profileImage} className="avatar" />
+              <Avatar alt={request.name} src={request.profileImage} className="noti-avatar" />
               <div className="notification-details">
                 <div className="notification-text">
-                  <span>{request.name}</span> <span className="username">(@{request.username})</span>
+                  <span className="noti-name">{request.name}</span>
+                  <span className="noti-user">@{request.username}</span>
+                  <p className="noti-subtext">sent you a follow request</p>
                 </div>
                 <div className="notification-actions">
-                  <Button onClick={() => handleAccept(request._id)} variant="contained" color="primary">
+                  <Button onClick={() => handleAccept(request._id)} className="noti-btn accept-btn">
                     Accept
                   </Button>
-                  <Button onClick={() => handleReject(request._id)} variant="outlined" color="secondary">
+                  <Button onClick={() => handleReject(request._id)} className="noti-btn reject-btn">
                     Reject
                   </Button>
                 </div>
@@ -139,20 +138,22 @@ export default function Notification() {
           ))}
           {acceptedRequests.map((request) => (
             <div key={request._id} className="notification-item">
-              <Avatar alt={request.name} src={request.profileImage} className="avatar" />
+              <Avatar alt={request.name} src={request.profileImage} className="noti-avatar" />
               <div className="notification-details">
                 <div className="notification-text">
-                  <span>{request.name}</span> <span className="username">(@{request.username})</span>
+                  <span className="noti-name">{request.name}</span>
+                  <span className="noti-user">@{request.username}</span>
+                  <p className="noti-subtext">accepted your follow request</p>
                 </div>
                 <div className="notification-actions">
-                  <Button onClick={() => handleFollowBack(request._id)} variant="contained" color="success">
+                  <Button onClick={() => handleFollowBack(request._id)} className="noti-btn followback-btn">
                     Follow Back
                   </Button>
                 </div>
               </div>
             </div>
           ))}
-        </>
+        </div>
       )}
     </div>
   );

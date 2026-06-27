@@ -1,219 +1,163 @@
-/* Fade In Animation */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
+/* Minimalist Notification Center Styling with Dark & Light Support */
 
-/* Slide Up Animation for Notification Items */
-@keyframes slideUp {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Overall container styling */
 .notification-container {
-  background: rgba(255, 255, 255, 0.9); /* Slightly less transparent for clarity */
-  border-radius: 20px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); /* Softer, deeper shadow */
-  max-width: 85%;
-  min-width: 60%;
-  min-height: 50%;
-  padding: 40px 30px;
-  margin: 100px auto; /* Centered with consistent margin */
-  animation: fadeIn 0.8s ease-in-out;
-  transition: transform 0.3s ease, box-shadow 0.3s ease; /* Smooth hover effects */
+  max-width: 680px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 10px 0;
+  transition: all 0.3s ease;
+  animation: fadeIn 0.4s ease-in-out;
+  box-sizing: border-box;
 }
 
-.notification-container:hover {
-  transform: translateY(-5px); /* Subtle lift on hover */
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.15); /* Enhanced shadow on hover */
-}
-
-/* Dark Mode Styling for Container */
 .app-container.dark .notification-container {
-  background: rgba(50, 50, 50, 0.9); /* Slightly less transparent */
-  color: #eee;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5); /* Darker shadow for depth */
+  background: transparent;
+  border: none;
+  color: #ffffff;
 }
 
-.app-container.dark .notification-container:hover {
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.6); /* Enhanced dark mode hover */
+.app-container.light .notification-container {
+  background: transparent;
+  border: none;
+  color: #0f172a;
 }
 
-/* Notification Items */
+.notification-container h2 {
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin: 0 0 24px 0;
+  text-align: center;
+}
+
+/* Empty State */
+.empty-noti-box {
+  padding: 40px 20px;
+  text-align: center;
+  opacity: 0.6;
+}
+
+/* List Box */
+.noti-list-box {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
 .notification-item {
   display: flex;
   align-items: center;
-  justify-content: flex-start;
-  padding: 15px;
-  margin-bottom: 10px;
-  border-radius: 10px;
-  animation: slideUp 0.5s ease-in-out; /* Slide up for each item */
-  transition: transform 0.3s ease, box-shadow 0.3s ease; /* Smooth hover */
+  gap: 16px;
+  padding: 16px 20px;
+  border-radius: 16px;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
+}
+
+.app-container.dark .notification-item {
+  background: #141417;
+  border-color: rgba(255, 255, 255, 0.06);
+}
+
+.app-container.light .notification-item {
+  background: #f8fafc;
+  border-color: #e2e8f0;
 }
 
 .notification-item:hover {
-  transform: scale(1.02); /* Slight scale on hover */
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1); /* Subtle shadow instead of background */
+  transform: translateY(-2px);
 }
 
 .app-container.dark .notification-item:hover {
-  box-shadow: 0 2px 8px rgba(255, 255, 255, 0.1); /* Light shadow in dark mode */
+  background: #18181c;
+  border-color: rgba(255, 255, 255, 0.2);
 }
 
-/* Avatar Styling */
-.avatar {
-  width: 50px; /* Fixed width for consistency */
-  height: 50px; /* Fixed height */
-  padding-left: 0%;
-  margin-right: 15px; /* Slightly more space */
-  border-radius: 50%;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  transition: transform 0.3s ease; /* Smooth avatar animation */
-  object-fit: cover; /* Ensures image fits nicely */
+.app-container.light .notification-item:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
 }
 
-.notification-item:hover .avatar {
-  transform: scale(1.1) rotate(5deg); /* Scale and slight tilt on hover */
+.noti-avatar {
+  width: 48px !important;
+  height: 48px !important;
 }
 
-.app-container.dark .avatar {
-  box-shadow: 0 2px 4px rgba(255, 255, 255, 0.1);
-}
-
-.app-container.dark .notification-item:hover .avatar {
-  transform: scale(1.1) rotate(5deg); /* Consistent animation in dark mode */
-}
-
-/* Notification Details */
 .notification-details {
   display: flex;
   align-items: center;
   justify-content: space-between;
   flex-grow: 1;
-  padding: 0 10px; /* Slight padding for breathing room */
-  transition: transform 0.3s ease; /* Smooth details animation */
 }
 
-.notification-item:hover .notification-details {
-  transform: translateX(5px); /* Slight shift right on hover */
+.notification-text {
+  display: flex;
+  flex-direction: column;
 }
 
-/* Notification Text */
-.notification-text span {
-  font-weight: bold;
-  font-size: 16px; /* Slightly larger for readability */
-  transition: transform 0.2s ease; /* Smooth text animation */
+.noti-name {
+  font-weight: 700;
+  font-size: 0.98rem;
 }
 
-.notification-item:hover .notification-text span {
-  transform: scale(1.05); /* Slight scale on hover */
+.noti-user {
+  font-size: 0.82rem;
+  opacity: 0.6;
 }
 
-.notification-text .username {
-  font-weight: normal;
-  color: #666;
-  font-size: 14px; /* Slightly smaller for hierarchy */
-  margin-left: 5px;
-  transition: transform 0.2s ease; /* Smooth username animation */
+.noti-subtext {
+  font-size: 0.85rem;
+  margin: 2px 0 0 0;
+  opacity: 0.8;
 }
 
-.notification-item:hover .notification-text .username {
-  transform: scale(1.05); /* Slight scale on hover */
-}
-
-.app-container.dark .notification-text .username {
-  color: #aaa;
-}
-
-/* Notification Actions */
+/* Action Buttons */
 .notification-actions {
   display: flex;
-  gap: 12px;
-  align-items: center;
+  gap: 8px;
 }
 
-.notification-actions button {
-  padding: 6px 12px;
-  font-size: 14px;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease; /* Smooth button animation */
+.noti-btn {
+  border-radius: 20px !important;
+  font-weight: 700 !important;
+  text-transform: none !important;
+  padding: 8px 18px !important;
+  font-size: 0.88rem !important;
+  transition: all 0.2s ease !important;
 }
 
-.notification-actions button:hover {
-  transform: scale(1.1); /* Slight scale on hover */
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+.app-container.dark .accept-btn {
+  background: #ffffff !important;
+  color: #000000 !important;
 }
 
-.notification-actions button:active {
-  transform: scale(0.95); /* Slight press effect */
+.app-container.light .accept-btn {
+  background: #0f172a !important;
+  color: #ffffff !important;
 }
 
-.app-container.dark .notification-actions button:hover {
-  box-shadow: 0 2px 4px rgba(255, 255, 255, 0.1);
+.accept-btn:hover {
+  transform: translateY(-2px);
+  opacity: 0.9;
 }
 
-/* No Requests Message */
-.notification-container p {
-  text-align: center;
-  font-size: 1.2em;
-  color: #888;
-  margin-top: 20px;
-  animation: fadeIn 0.5s ease-in-out; /* Fade in for message */
-  transition: transform 0.3s ease; /* Smooth hover */
+.reject-btn {
+  background: rgba(255, 71, 87, 0.1) !important;
+  color: #ff4757 !important;
+  border: 1px solid rgba(255, 71, 87, 0.2) !important;
 }
 
-.notification-container:hover p {
-  transform: translateY(-2px); /* Slight lift on hover */
+.reject-btn:hover {
+  background: #ff4757 !important;
+  color: #ffffff !important;
+  transform: translateY(-2px);
 }
 
-.app-container.dark .notification-container p {
-  color: #ccc;
+.followback-btn {
+  background: #10b981 !important;
+  color: #ffffff !important;
 }
 
-/* Heading */
-.notification-container h2 {
-  text-align: center;
-  margin-bottom: 25px;
-  font-size: 1.8em; /* Slightly larger for prominence */
-  font-weight: 600;
-  color: #333;
-  letter-spacing: 0.5px; /* Subtle spacing */
-  transition: transform 0.3s ease; /* Smooth heading animation */
-}
-
-.notification-container:hover h2 {
-  transform: scale(1.02); /* Slight scale on hover */
-}
-
-.app-container.dark .notification-container h2 {
-  color: #eee;
-}
-
-/* Notification Item Image */
-.notification-item img {
-  width: 50px; /* Fixed width instead of auto */
-  height: 50px; /* Matches avatar size instead of 200% */
-  object-fit: cover;
-  border-radius: 8px; /* Slight rounding */
-  margin-right: 10px;
-  transition: transform 0.3s ease; /* Smooth image animation */
-}
-
-.notification-item:hover img {
-  transform: scale(1.05) rotate(-5deg); /* Scale and slight tilt on hover */
+.followback-btn:hover {
+  background: #059669 !important;
+  transform: translateY(-2px);
 }

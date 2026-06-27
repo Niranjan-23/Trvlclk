@@ -5,8 +5,8 @@ import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import API_BASE_URL from "./config";
 import "./MapComponent.css";
+import SearchIcon from "@mui/icons-material/Search";
 
-// Fix for default marker icon not showing
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
   iconRetinaUrl: require("leaflet/dist/images/marker-icon-2x.png"),
@@ -14,76 +14,70 @@ L.Icon.Default.mergeOptions({
   shadowUrl: require("leaflet/dist/images/marker-shadow.png"),
 });
 
-// Component to change map view programmatically without changing zoom
 const ChangeView = ({ coords }) => {
   const map = useMap();
   map.setView(coords, map.getZoom(), { animate: false });
   return null;
 };
 
-// Component to handle map click events (sets position and location name)
 const MapClickHandler = ({ setPosition, setLocationName, fetchPostsForLocation }) => {
   useMapEvents({
     click: async (e) => {
       const { lat, lng } = e.latlng;
-      console.debug("Map clicked at:", lat, lng);
       setPosition([lat, lng]);
-
-      // Reverse geocode for display name (best-effort)
       try {
         const res = await fetch(
           `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}`
         );
         const data = await res.json();
-        const displayName = data.display_name || `${lat}, ${lng}`;
+        const displayName = data.display_name || `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
         setLocationName(displayName);
-        fetchPostsForLocation(displayName);
+        fetchPostsForLocation(displayName, lat, lng);
       } catch (err) {
         console.error("Reverse geocoding failed:", err);
-        setLocationName(`${lat}, ${lng}`);
-        fetchPostsForLocation(`${lat}, ${lng}`);
+        const fallbackName = `${lat.toFixed(4)}, ${lng.toFixed(4)}`;
+        setLocationName(fallbackName);
+        fetchPostsForLocation(fallbackName, lat, lng);
       }
     },
   });
   return null;
 };
 
-const MapComponent = ({ label = "Location is here!", loggedInUser }) => {
+const MapComponent = ({ label = "Location is here!", loggedInUser, isDarkMode = true }) => {
   const routerLocation = useLocation();
   const navigate = useNavigate();
   const locationString = routerLocation.state?.location || "";
-  const [position, setPosition] = useState([11.0056, 76.9661]); // Default to Coimbatore
+  const [position, setPosition] = useState([11.0056, 76.9661]); // Coimbatore default
   const [searchQuery, setSearchQuery] = useState(locationString);
   const [locationName, setLocationName] = useState(locationString || "Select a location");
   const [nearbyPosts, setNearbyPosts] = useState([]);
   const [loadingPosts, setLoadingPosts] = useState(false);
 
-  const fetchPostsForLocation = async (locationLabel) => {
+  const fetchPostsForLocation = async (locationLabel, latVal, lngVal) => {
     try {
       setLoadingPosts(true);
       const normalizedLocation = String(locationLabel || "").trim();
-      if (!normalizedLocation) {
-        setNearbyPosts([]);
-        return;
+      const targetLat = latVal !== undefined ? latVal : position[0];
+      const targetLng = lngVal !== undefined ? lngVal : position[1];
+
+      let url = `${API_BASE_URL}/api/posts/location/${encodeURIComponent(normalizedLocation || "nearby")}`;
+      if (targetLat !== null && targetLng !== null) {
+        url += `?lat=${targetLat}&lng=${targetLng}`;
       }
 
-      const response = await fetch(
-        `${API_BASE_URL}/api/posts/location/${encodeURIComponent(normalizedLocation)}`,
-        {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("token")}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      const response = await fetch(url, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+          "Content-Type": "application/json",
+        },
+      });
 
-      if (!response.ok) {
-        throw new Error("Failed to fetch nearby posts");
-      }
+      if (!response.ok) throw new Error("Failed to fetch nearby posts");
 
       const data = await response.json();
       setNearbyPosts(data.posts || []);
-      setLocationName(normalizedLocation);
+      if (normalizedLocation) setLocationName(normalizedLocation);
     } catch (error) {
       console.error("Error fetching location posts:", error);
       setNearbyPosts([]);
@@ -92,10 +86,12 @@ const MapComponent = ({ label = "Location is here!", loggedInUser }) => {
     }
   };
 
-  // Effect: Search for location on mount if provided
   useEffect(() => {
     const searchLocation = async () => {
-      if (!locationString) return;
+      if (!locationString) {
+        fetchPostsForLocation("Coimbatore", 11.0056, 76.9661);
+        return;
+      }
       try {
         const response = await fetch(
           `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(
@@ -108,10 +104,7 @@ const MapComponent = ({ label = "Location is here!", loggedInUser }) => {
           const lon = parseFloat(data[0].lon);
           setPosition([lat, lon]);
           setLocationName(locationString);
-          fetchPostsForLocation(locationString);
-        } else {
-          console.warn("Location not found:", locationString);
-          setLocationName("Location not found");
+          fetchPostsForLocation(locationString, lat, lon);
         }
       } catch (error) {
         console.error("Error searching location:", error);
@@ -120,9 +113,6 @@ const MapComponent = ({ label = "Location is here!", loggedInUser }) => {
     searchLocation();
   }, [locationString]);
 
-  // NOTE: posts are intentionally not displayed on this page — Map is shown as full page
-
-  // Handle search form submission
   const handleSearch = async (e) => {
     e.preventDefault();
     if (!searchQuery.trim()) return;
@@ -138,9 +128,8 @@ const MapComponent = ({ label = "Location is here!", loggedInUser }) => {
         const lon = parseFloat(data[0].lon);
         setPosition([lat, lon]);
         setLocationName(searchQuery);
-        fetchPostsForLocation(searchQuery);
+        fetchPostsForLocation(searchQuery, lat, lon);
       } else {
-        console.warn("Search: location not found", searchQuery);
         setLocationName("Location not found");
       }
     } catch (error) {
@@ -148,51 +137,28 @@ const MapComponent = ({ label = "Location is here!", loggedInUser }) => {
     }
   };
 
-  // No post list on this page — map-only view
+  const tileUrl = isDarkMode
+    ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+    : "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png";
 
   return (
-    <div
-      style={{
-        position: "relative",
-        width: "100%",
-        height: "calc(100vh - 112px)",
-        background: "#f5f5f5",
-        overflow: "hidden",
-      }}
-    >
+    <div className="map-wrapper-container">
       {/* Search Bar */}
-      <form
-        onSubmit={handleSearch}
-        style={{
-          position: "absolute",
-          top: 12,
-          left: "50%",
-          transform: "translateX(-50%)",
-          zIndex: 1000,
-          backgroundColor: "white",
-          padding: "6px 12px",
-          borderRadius: 4,
-          boxShadow: "0 2px 6px rgba(0,0,0,0.3)",
-          display: "flex",
-          alignItems: "center",
-          width: "300px",
-          maxWidth: "calc(100% - 24px)",
-        }}
-      >
+      <form onSubmit={handleSearch} className="map-search-bar">
         <input
           type="text"
-          placeholder="Search location..."
+          placeholder="Search location (10km radius)..."
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          style={{ flexGrow: 1, border: "none", outline: "none", fontSize: 16 }}
+          className="map-search-input"
         />
-        <button type="submit" style={{ marginLeft: 8, cursor: "pointer" }}>
-          🔍
+        <button type="submit" className="map-search-btn">
+          <SearchIcon fontSize="small" />
         </button>
       </form>
 
       {/* Map Section */}
-      <div style={{ width: "100%", height: "100%" }}>
+      <div className="map-canvas-box">
         <MapContainer center={position} zoom={13} style={{ width: "100%", height: "100%" }}>
           <ChangeView coords={position} />
           <MapClickHandler
@@ -201,61 +167,42 @@ const MapComponent = ({ label = "Location is here!", loggedInUser }) => {
             fetchPostsForLocation={fetchPostsForLocation}
           />
           <TileLayer
-            attribution='© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-            url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+            url={tileUrl}
           />
           <Marker position={position}>
             <Popup maxWidth={520} autoPan={true} closeButton={true}>
-              <div style={{ width: "min(85vw, 460px)"  }}>
-                <div style={{ marginBottom: 10 }}>
-                  <div style={{ fontWeight: 700, fontSize: 16, marginBottom: 2 }}>{locationName}</div>
-                  <div style={{ fontSize: 12, color: "#666" }}>
+              <div className="map-popup-card">
+                <div className="popup-header-info">
+                  <div className="popup-location-title">{locationName}</div>
+                  <div className="popup-location-count">
                     {loadingPosts
                       ? "Loading posts..."
-                      : `${nearbyPosts.length} post${nearbyPosts.length === 1 ? "" : "s"} nearby`}
+                      : `${nearbyPosts.length} post${nearbyPosts.length === 1 ? "" : "s"} within 10km`}
                   </div>
                 </div>
 
                 {loadingPosts ? (
-                  <div style={{ padding: 12, textAlign: "center" }}>Loading...</div>
+                  <div className="popup-status-text">Loading...</div>
                 ) : nearbyPosts.length > 0 ? (
-                  <div
-                  className="posts-grid"
-                  style={{
-                    display: "grid",
-                    gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-                    gap: 10,
-                    maxHeight: 280,
-                    overflowY: "auto",
-                    paddingRight: 4,
-                  }}
-                >
+                  <div className="posts-grid">
                     {nearbyPosts.map((post) => (
                       <button
                         key={post._id}
                         type="button"
                         onClick={() => navigate(`/posts/${post._id}`)}
-                        style={{
-                          padding: 0,
-                          borderRadius: 10,
-                          overflow: "hidden",
-                          border: "1px solid rgba(0,0,0,0.08)",
-                          background: "#fff",
-                          cursor: "pointer",
-                          textAlign: "left",
-                        }}
+                        className="map-popup-post-item"
                       >
                         <img
                           src={post.imageUrl}
                           alt={post.description || post.location || "post"}
-                          style={{ width: "100%", height: 140, objectFit: "cover", display: "block" }}
                         />
                       </button>
                     ))}
                   </div>
                 ) : (
-                  <div style={{ padding: 12, textAlign: "center", color: "#666" }}>
-                    No posts found for this location.
+                  <div className="popup-status-text">
+                    No posts found within 10km radius.
                   </div>
                 )}
               </div>

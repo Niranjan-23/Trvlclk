@@ -4,6 +4,7 @@ import Button from "@mui/material/Button";
 import IconButton from "@mui/material/IconButton";
 import CloseIcon from "@mui/icons-material/Close";
 import PersonAddAlt1Icon from "@mui/icons-material/PersonAddAlt1";
+import FavoriteIcon from "@mui/icons-material/Favorite";
 import API_BASE_URL from "./config";
 import Post from "./Post";
 import "./Profile.css";
@@ -26,8 +27,6 @@ const OtherUserProfile = ({ user: propUser, loggedInUser, onUserUpdate }) => {
         if (response.ok) {
           const data = await response.json();
           setLocalUser(data.user);
-        } else {
-          console.error("Failed to fetch user:", response.status);
         }
       } catch (error) {
         console.error("Error fetching user:", error);
@@ -51,8 +50,6 @@ const OtherUserProfile = ({ user: propUser, loggedInUser, onUserUpdate }) => {
         if (response.ok) {
           const data = await response.json();
           setUserPosts(data.posts || []);
-        } else {
-          console.error("Failed to fetch user posts");
         }
       } catch (error) {
         console.error("Error fetching user posts:", error);
@@ -80,8 +77,6 @@ const OtherUserProfile = ({ user: propUser, loggedInUser, onUserUpdate }) => {
       if (response.ok) {
         alert("Follow request sent!");
         setLocalUser(data.user);
-      } else {
-        alert("Error: " + data.error);
       }
     } catch (error) {
       console.error("Error sending follow request:", error);
@@ -100,8 +95,6 @@ const OtherUserProfile = ({ user: propUser, loggedInUser, onUserUpdate }) => {
         alert("Unfollowed successfully!");
         setLocalUser(data.user);
         if (onUserUpdate) onUserUpdate();
-      } else {
-        alert("Error: " + data.error);
       }
     } catch (error) {
       console.error("Error following/unfollowing user:", error);
@@ -116,69 +109,63 @@ const OtherUserProfile = ({ user: propUser, loggedInUser, onUserUpdate }) => {
     setSelectedPost(null);
   };
 
-  if (loading) return <div>Loading user...</div>;
-  if (!localUser || !localUser._id) return <div>No user data available</div>;
+  if (loading) return <div className="profile-container"><p>Loading user...</p></div>;
+  if (!localUser || !localUser._id) return <div className="profile-container"><p>No user data available</p></div>;
 
   return (
     <div className="profile-container">
-      <div className="profile-header">
-        <div className="profile-image-wrapper">
-          <img src={localUser.profileImage} alt="Profile" className="profile-image" />
+      <div className="profile-header-card">
+        <div className="profile-avatar-box">
+          <img src={localUser.profileImage} alt="Profile" className="profile-avatar-img" />
         </div>
-        <div className="profile-details">
-          <h2 className="profile-name">{localUser.name}</h2>
-          <p className="profile-username">@{localUser.username}</p>
-          <p className="profile-bio">{localUser.bio}</p>
-          <div className="profile-stats">
+        <div className="profile-info-box">
+          <div className="profile-title-row">
+            <h2 className="profile-name">{localUser.name}</h2>
             <div>
-              <strong>{userPosts.length}</strong> Posts
-            </div>
-            <div onClick={() => setShowFollowersModal(true)} style={{ cursor: "pointer" }}>
-              <strong>{localUser.followers?.length || 0}</strong> Followers
-            </div>
-            <div onClick={() => setShowFollowingModal(true)} style={{ cursor: "pointer" }}>
-              <strong>{localUser.following?.length || 0}</strong> Following
+              {isFollowing ? (
+                <button onClick={handleFollowUnfollow} className="edit-profile-btn unfollow-btn">
+                  Unfollow
+                </button>
+              ) : isRequested ? (
+                <button disabled className="edit-profile-btn requested-btn">
+                  Requested
+                </button>
+              ) : (
+                <button onClick={handleFollowRequest} className="edit-profile-btn follow-btn">
+                  Follow
+                </button>
+              )}
             </div>
           </div>
-          <div>
-            {isFollowing ? (
-              <Button
-                onClick={handleFollowUnfollow}
-                size="small"
-                variant="contained"
-                color="secondary"
-              >
-                Unfollow
-              </Button>
-            ) : isRequested ? (
-              <Button disabled size="small" variant="contained" color="primary">
-                Requested
-              </Button>
-            ) : (
-              <Button
-                onClick={handleFollowRequest}
-                size="small"
-                variant="contained"
-                color="primary"
-                startIcon={<PersonAddAlt1Icon />}
-              >
-                Follow
-              </Button>
-            )}
+          <p className="profile-username">@{localUser.username}</p>
+          {localUser.bio && <p className="profile-bio">{localUser.bio}</p>}
+          <div className="profile-stats-bar">
+            <div className="stat-item">
+              <strong>{userPosts.length}</strong> posts
+            </div>
+            <div className="stat-item clickable" onClick={() => setShowFollowersModal(true)}>
+              <strong>{localUser.followers?.length || 0}</strong> followers
+            </div>
+            <div className="stat-item clickable" onClick={() => setShowFollowingModal(true)}>
+              <strong>{localUser.following?.length || 0}</strong> following
+            </div>
           </div>
         </div>
       </div>
 
+      <div className="profile-section-title">
+        <span>POSTS</span>
+      </div>
+
       <div className="post-grid">
         {userPosts.map((post) => (
-          <div className="post-item" key={post._id}>
-            <img
-              src={post.imageUrl}
-              alt="Post"
-              className="post-image"
-              onClick={() => handlePostClick(post)}
-              style={{ cursor: "pointer" }}
-            />
+          <div className="profile-post-card" key={post._id} onClick={() => handlePostClick(post)}>
+            <img src={post.imageUrl} alt="Post" className="profile-post-img" />
+            <div className="profile-post-overlay">
+              <div className="post-overlay-stat">
+                <FavoriteIcon fontSize="small" /> <span>{post.likes?.length || 0}</span>
+              </div>
+            </div>
           </div>
         ))}
       </div>
@@ -189,7 +176,7 @@ const OtherUserProfile = ({ user: propUser, loggedInUser, onUserUpdate }) => {
           <div className="list-container" onClick={(e) => e.stopPropagation()}>
             <div className="list-header">
               <h2>Followers</h2>
-              <IconButton onClick={() => setShowFollowersModal(false)}>
+              <IconButton onClick={() => setShowFollowersModal(false)} className="modal-close-btn">
                 <CloseIcon />
               </IconButton>
             </div>
@@ -215,7 +202,7 @@ const OtherUserProfile = ({ user: propUser, loggedInUser, onUserUpdate }) => {
           <div className="list-container" onClick={(e) => e.stopPropagation()}>
             <div className="list-header">
               <h2>Following</h2>
-              <IconButton onClick={() => setShowFollowingModal(false)}>
+              <IconButton onClick={() => setShowFollowingModal(false)} className="modal-close-btn">
                 <CloseIcon />
               </IconButton>
             </div>
@@ -235,16 +222,13 @@ const OtherUserProfile = ({ user: propUser, loggedInUser, onUserUpdate }) => {
         </div>
       )}
 
-      {/* ✅ Updated Post Overlay */}
+      {/* Post Overlay Modal */}
       {selectedPost && (
         <div className="modal-overlay visible" onClick={handleClosePost}>
-          <div className="post-overlay-container" onClick={(e) => e.stopPropagation()}>
-            <IconButton
-              onClick={handleClosePost}
-              style={{ position: "absolute", top: 10, right: 10, zIndex: 1000, color: "white" }}
-            >
-              <CloseIcon />
-            </IconButton>
+          <div className="post-overlay-card-wrapper" onClick={(e) => e.stopPropagation()}>
+            <button className="post-modal-close-btn" onClick={handleClosePost}>
+              &times;
+            </button>
             <Post
               post={selectedPost}
               loggedInUser={loggedInUser}

@@ -279,16 +279,21 @@ const App = () => {
     }, [postId]);
 
     return (
-      <div className="posts-container">
-        <Button onClick={() => navigate(-1)} style={{ marginBottom: 16 }}>
-          Back
+      <div className="posts-container post-detail-page-wrapper">
+        <Button
+          onClick={() => navigate(-1)}
+          variant="contained"
+          className="post-detail-back-btn"
+          style={{ marginBottom: 20, borderRadius: 20, textTransform: 'none', fontWeight: 700 }}
+        >
+          ← Back
         </Button>
         {loading ? (
-          <p>Loading post...</p>
+          <p className="loading-text">Loading post...</p>
         ) : post ? (
-          <Post post={post} loggedInUser={loggedInUser} />
+          <Post post={post} loggedInUser={loggedInUser} showCommentsByDefault={true} />
         ) : (
-          <p>Post not found</p>
+          <p className="not-found-text">Post not found</p>
         )}
       </div>
     );
@@ -453,7 +458,7 @@ const App = () => {
                 <Route path="/ProfileSetting" element={<ProfileComp userId={loggedInUser._id} />} />
                 <Route path="/user/:userId" element={<OtherUserProfile loggedInUser={loggedInUser} />} />
                 <Route path="/posts/:postId" element={<PostDetail />} />
-                <Route path="/map" element={<MapComponent loggedInUser={loggedInUser} />} />
+                <Route path="/map" element={<MapComponent loggedInUser={loggedInUser} isDarkMode={isDarkMode} />} />
                 <Route path="*" element={<div>404 - Page Not Found</div>} />
               </Routes>
             </>
@@ -473,7 +478,7 @@ const App = () => {
                   <Route path="/ProfileSetting" element={<ProfileComp userId={loggedInUser._id} />} />
                   <Route path="/user/:userId" element={<OtherUserProfile loggedInUser={loggedInUser} />} />
                   <Route path="/posts/:postId" element={<PostDetail />} />
-                  <Route path="/map" element={<MapComponent loggedInUser={loggedInUser} />} />
+                  <Route path="/map" element={<MapComponent loggedInUser={loggedInUser} isDarkMode={isDarkMode} />} />
                   <Route path="*" element={<div>404 - Page Not Found</div>} />
                 </>
               )}

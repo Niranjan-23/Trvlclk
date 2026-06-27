@@ -19,22 +19,18 @@ export default function AddPost({ user, onPostAdded = () => {} }) {
   const handleUploadClick = () => {
     const url = prompt("Enter Image URL:");
     if (url && url.trim() !== "") {
-      setPreviewUrl(url);
-      setImageUrl(url);
+      setPreviewUrl(url.trim());
+      setImageUrl(url.trim());
     }
   };
 
   const handlePost = async () => {
-    console.log("Posting with:", { imageUrl, location, latitude, longitude });
-
     if (!imageUrl?.trim() || !user?._id) {
-      console.error("Image URL is empty or user ID is missing");
       alert("Please provide a valid image URL and ensure you are logged in.");
       return;
     }
 
     if (latitude === null || longitude === null) {
-      console.error("Please select a location from the dropdown suggestions.");
       alert("Please select a location from the dropdown suggestions.");
       return;
     }
@@ -55,15 +51,12 @@ export default function AddPost({ user, onPostAdded = () => {} }) {
 
       if (!response.ok) {
         const errorData = await response.json();
-        console.error("Error adding post:", errorData.error || "Unknown error");
         alert(`Error: ${errorData.error || "Failed to add post"}`);
         return;
       }
 
       const data = await response.json();
-      console.log("Post added successfully:", data.post);
-
-      onPostAdded(data.post); // Pass the new post to the callback
+      onPostAdded(data.post);
 
       setPreviewUrl("");
       setImageUrl("");
@@ -71,7 +64,7 @@ export default function AddPost({ user, onPostAdded = () => {} }) {
       setDescription("");
       setLatitude(null);
       setLongitude(null);
-      setLocationSuggestions([]); // Reset suggestions
+      setLocationSuggestions([]);
     } catch (error) {
       console.error("Error adding post:", error);
       alert("Failed to add post. Please try again.");
@@ -83,7 +76,6 @@ export default function AddPost({ user, onPostAdded = () => {} }) {
       setLocationSuggestions([]);
       return;
     }
-    // don't attempt when offline
     if (typeof navigator !== 'undefined' && !navigator.onLine) {
       setLocationSuggestions([]);
       return;
@@ -101,7 +93,6 @@ export default function AddPost({ user, onPostAdded = () => {} }) {
         }))
       );
     } catch (err) {
-      // suppress noisy errors (CORS/network); keep suggestions empty
       console.debug("Failed to fetch location suggestions:", err);
       setLocationSuggestions([]);
     }
@@ -117,17 +108,23 @@ export default function AddPost({ user, onPostAdded = () => {} }) {
 
   return (
     <div className="add-container">
+      <div className="add-post-header">
+        <h2>Create New Post</h2>
+      </div>
+
       {previewUrl ? (
-        <>
-          <img src={previewUrl} alt="Selected Preview" />
+        <div className="post-form-body">
+          <div className="preview-image-wrapper">
+            <img src={previewUrl} alt="Selected Preview" className="preview-image" />
+          </div>
           <div className="input-fields">
             <TextField
-              label="Description"
+              label="Description / Caption"
               variant="outlined"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               fullWidth
-              margin="normal"
+              className="custom-textfield"
             />
             <Autocomplete
               freeSolo
@@ -150,79 +147,49 @@ export default function AddPost({ user, onPostAdded = () => {} }) {
               renderInput={(params) => (
                 <TextField
                   {...params}
-                  label="Location"
+                  label="Select Location"
                   variant="outlined"
                   fullWidth
-                  margin="normal"
+                  className="custom-textfield"
                 />
               )}
             />
           </div>
-          <div className="post-button">
+          <div className="post-button-group">
             <Button
               type="button"
-              size="medium"
-              variant="contained"
+              className="action-btn change-btn"
               startIcon={<FileUploadOutlinedIcon />}
               onClick={handleUploadClick}
-              sx={{
-                background: "linear-gradient(45deg, #4CAF50, #81C784)",
-                color: "#fff",
-                padding: "10px 20px",
-                borderRadius: "8px",
-                boxShadow: "0 3px 6px rgba(0,0,0,0.2)",
-                "&:hover": {
-                  background: "linear-gradient(45deg, #388E3C, #66BB6A)",
-                  boxShadow: "0 5px 10px rgba(0,0,0,0.3)",
-                },
-              }}
             >
               Change Image
             </Button>
             <Button
               type="button"
-              size="medium"
-              variant="contained"
+              className="action-btn submit-btn"
               startIcon={<BackupTwoToneIcon />}
               onClick={handlePost}
-              sx={{
-                background: "linear-gradient(45deg, #1976D2, #42A5F5)",
-                color: "#fff",
-                padding: "10px 20px",
-                borderRadius: "8px",
-                boxShadow: "0 3px 6px rgba(0,0,0,0.2)",
-                "&:hover": {
-                  background: "linear-gradient(45deg, #1565C0, #1E88E5)",
-                  boxShadow: "0 5px 10px rgba(0,0,0,0.3)",
-                },
-              }}
             >
-              Post
+              Share Post
             </Button>
           </div>
-        </>
+        </div>
       ) : (
-        <div style={{ gap: "30px", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "100%" }}>
-          <h3>No Image Uploaded</h3>
+        <div className="upload-placeholder" onClick={handleUploadClick}>
+          <div className="upload-icon-box">
+            <FileUploadOutlinedIcon style={{ fontSize: 48 }} />
+          </div>
+          <h3>Select Photo to Share</h3>
+          <p>Click here to provide an Image URL</p>
           <Button
             type="button"
-            size="medium"
-            variant="contained"
-            startIcon={<FileUploadOutlinedIcon />}
-            onClick={handleUploadClick}
-            sx={{
-              background: "linear-gradient(45deg, #FF5722, #FF8A65)",
-              color: "#fff",
-              padding: "12px 24px",
-              borderRadius: "10px",
-              boxShadow: "0 4px 8px rgba(0,0,0,0.2)",
-              "&:hover": {
-                background: "linear-gradient(45deg, #E64A19, #F4511E)",
-                boxShadow: "0 6px 12px rgba(0,0,0,0.3)",
-              },
+            className="action-btn select-btn"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleUploadClick();
             }}
           >
-            Upload Image
+            Upload Photo
           </Button>
         </div>
       )}

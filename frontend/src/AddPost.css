@@ -1,87 +1,210 @@
-/* Add Container */
+/* Minimalist Add Post Styling with Dark & Light Support */
+
 .add-container {
-  background: rgba(255, 255, 255, 0.95); /* Slightly less transparency for clarity */
-  padding: 40px;
-  margin: 80px auto;
-  border-radius: 15px;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
-  display: flex;
-  flex-direction: column;
-  width: 450px;
-  gap: 25px;
-  animation: fadeIn 0.8s ease-in-out;
-  backdrop-filter: blur(5px);
-  transition: transform 0.3s ease;
-}
-
-.add-container:hover {
-  transform: translateY(-5px);
-}
-
-/* Image Styling */
-.add-container img {
+  max-width: 580px;
   width: 100%;
-  height: 75%;
-  object-fit: cover;
-  border-radius: 10px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-  transition: transform 0.3s ease;
+  margin: 0 auto;
+  padding: 10px 0;
+  transition: all 0.3s ease;
+  animation: scaleUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  box-sizing: border-box;
 }
 
-.add-container img:hover {
-  transform: scale(1.02);
+.app-container.dark .add-container {
+  background: transparent;
+  border: none;
+  color: #ffffff;
 }
 
-/* Input Fields for Description and Location */
-.input-fields {
+.app-container.light .add-container {
+  background: transparent;
+  border: none;
+  color: #0f172a;
+}
+
+@keyframes scaleUp {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.add-post-header h2 {
+  font-size: 1.3rem;
+  font-weight: 700;
+  margin: 0 0 24px 0;
+  text-align: center;
+}
+
+.app-container.dark .add-post-header h2 { color: #ffffff; }
+.app-container.light .add-post-header h2 { color: #0f172a; }
+
+/* Upload Placeholder State */
+.upload-placeholder {
   display: flex;
   flex-direction: column;
-  gap: 15px;
-}
-
-.input-fields .MuiInputBase-root {
-  border-radius: 8px;
-}
-
-/* Post Button Container */
-.post-button {
-  display: flex;
-  flex-direction: row;
+  align-items: center;
   justify-content: center;
+  padding: 48px 24px;
+  border-radius: 18px;
+  border: 2px dashed rgba(255, 255, 255, 0.15);
+  cursor: pointer;
+  transition: all 0.25s ease;
+  text-align: center;
+}
+
+.app-container.light .upload-placeholder {
+  border-color: #cbd5e1;
+  background: #f8fafc;
+}
+
+.upload-placeholder:hover {
+  border-color: rgba(255, 255, 255, 0.4);
+  transform: translateY(-2px);
+}
+
+.app-container.light .upload-placeholder:hover {
+  border-color: #0f172a;
+}
+
+.upload-icon-box {
+  margin-bottom: 16px;
+  opacity: 0.8;
+  transition: transform 0.25s ease, opacity 0.25s ease;
+}
+
+.upload-placeholder:hover .upload-icon-box {
+  transform: translateY(-4px) scale(1.1);
+  opacity: 1;
+}
+
+.upload-placeholder h3 {
+  font-size: 1.1rem;
+  font-weight: 600;
+  margin: 0 0 6px 0;
+}
+
+.upload-placeholder p {
+  font-size: 0.88rem;
+  opacity: 0.6;
+  margin: 0 0 20px 0;
+}
+
+/* Post Form Body */
+.post-form-body {
+  display: flex;
+  flex-direction: column;
   gap: 20px;
 }
 
-/* Typography for No Image State */
-.add-container h3 {
-  font-family: 'Roboto', sans-serif;
-  font-size: 24px;
-  font-weight: 500;
-  color: #555;
-  text-align: center;
-  margin: 0;
-  text-transform: uppercase;
-  letter-spacing: 1px;
+.preview-image-wrapper {
+  width: 100%;
+  height: 280px;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.4);
 }
 
-/* Dark Mode Styling */
-.app-container.dark .add-container {
-  background: rgba(50, 50, 50, 0.9);
-  color: #eee;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.5);
+.preview-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 
-.app-container.dark .add-container h3 {
-  color: #ccc;
+.input-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
-.app-container.dark .add-container img {
-  box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1);
+.custom-textfield .MuiInputBase-root {
+  border-radius: 14px !important;
 }
 
-/* Responsive Adjustments */
-@media (max-width: 480px) {
+.app-container.dark .custom-textfield .MuiInputBase-root {
+  background: #141417 !important;
+  color: #ffffff !important;
+}
+
+.app-container.dark .custom-textfield fieldset {
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+.app-container.dark .custom-textfield .MuiInputLabel-root {
+  color: #a1a1aa !important;
+}
+
+.app-container.light .custom-textfield .MuiInputBase-root {
+  background: #ffffff !important;
+  color: #0f172a !important;
+}
+
+.app-container.light .custom-textfield fieldset {
+  border-color: #cbd5e1 !important;
+}
+
+/* Buttons Styling */
+.post-button-group {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.action-btn {
+  border-radius: 20px !important;
+  font-weight: 700 !important;
+  text-transform: none !important;
+  padding: 10px 24px !important;
+  font-size: 0.95rem !important;
+  transition: all 0.2s ease !important;
+}
+
+.select-btn {
+  background: #ffffff !important;
+  color: #000000 !important;
+}
+
+.app-container.light .select-btn {
+  background: #0f172a !important;
+  color: #ffffff !important;
+}
+
+.change-btn {
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: #ffffff !important;
+  flex: 1;
+}
+
+.app-container.light .change-btn {
+  background: #f1f5f9 !important;
+  color: #0f172a !important;
+  border: 1px solid #cbd5e1 !important;
+}
+
+.submit-btn {
+  background: #ffffff !important;
+  color: #000000 !important;
+  flex: 1.5;
+}
+
+.app-container.light .submit-btn {
+  background: #0f172a !important;
+  color: #ffffff !important;
+}
+
+.action-btn:hover {
+  transform: translateY(-2px);
+  opacity: 0.9;
+}
+
+@media (max-width: 600px) {
   .add-container {
-    width: 90%;
     padding: 20px;
+    margin: 20px auto;
   }
 }

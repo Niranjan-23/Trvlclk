@@ -3,6 +3,16 @@ import { Link, NavLink } from "react-router-dom";
 import "./Nav.css";
 import logo from "./assets/logo.png";
 import API_BASE_URL from "./config";
+import LightModeIcon from "@mui/icons-material/LightMode";
+import DarkModeIcon from "@mui/icons-material/DarkMode";
+import HomeIcon from "@mui/icons-material/Home";
+import NotificationsIcon from "@mui/icons-material/Notifications";
+import ChatIcon from "@mui/icons-material/Chat";
+import AddBoxIcon from "@mui/icons-material/AddBox";
+import SearchIcon from "@mui/icons-material/Search";
+import PersonIcon from "@mui/icons-material/Person";
+import MapIcon from "@mui/icons-material/Map";
+import LogoutIcon from "@mui/icons-material/Logout";
 
 const Nav = ({ onLinkClick, toggleTheme, isDarkMode, loggedInUser: propUser, handleLogout }) => {
   const storedUser = JSON.parse(localStorage.getItem("loggedInUser") || "null");
@@ -16,14 +26,12 @@ const Nav = ({ onLinkClick, toggleTheme, isDarkMode, loggedInUser: propUser, han
     }
     try {
       const response = await fetch(`${API_BASE_URL}/api/user/${currentUser._id}/followRequests`);
-      if (!response.ok) {
-        throw new Error("Failed to fetch follow requests");
+      if (response.ok) {
+        const data = await response.json();
+        setNotificationCount(data.pendingFollowRequests?.length || 0);
       }
-      const data = await response.json();
-      setNotificationCount(data.pendingFollowRequests?.length || 0);
     } catch (error) {
       console.error("Error fetching notification count:", error);
-      setNotificationCount(0);
     }
   };
 
@@ -34,60 +42,77 @@ const Nav = ({ onLinkClick, toggleTheme, isDarkMode, loggedInUser: propUser, han
     return () => window.removeEventListener("userUpdated", handleUserUpdated);
   }, [currentUser?._id]);
 
-  const navLinkClassName = ({ isActive }) => `nav-item${isActive ? " nav-item-active" : ""}`;
+  const navLinkClassName = ({ isActive }) => `sidebar-item${isActive ? " sidebar-item-active" : ""}`;
 
   return (
-    <header className="nav-container">
-      <div className="nav-left">
-        <Link to="/" onClick={onLinkClick} className="logo-link">
-          <img src={logo} alt="TrvlClk Logo" className="logo-image" />
+    <aside className="sidebar-container">
+      {/* Top Brand Logo */}
+      <div className="sidebar-top">
+        <Link to="/" onClick={onLinkClick} className="sidebar-logo-link">
+          <img src={logo} alt="TrvlClk Logo" className="sidebar-logo-img" />
         </Link>
-        <nav className="nav-center">
-          <NavLink to="/" className={navLinkClassName} onClick={onLinkClick} end>
-            Home
-          </NavLink>
-          <NavLink to="/Notification" className={navLinkClassName} onClick={onLinkClick}>
-            Notification{notificationCount > 0 && <span className="notif-badge">{notificationCount}</span>}
-          </NavLink>
-          <NavLink to="/messages" className={navLinkClassName} onClick={onLinkClick}>
-            Messages
-          </NavLink>
-          <NavLink to="/Add-post" className={navLinkClassName} onClick={onLinkClick}>
-            Add Post
-          </NavLink>
-          <NavLink to="/Search" className={navLinkClassName} onClick={onLinkClick}>
-            Search
-          </NavLink>
-          <NavLink to="/ProfileSetting" className={navLinkClassName} onClick={onLinkClick}>
-            Profile
-          </NavLink>
-          <NavLink to="/map" className={navLinkClassName} onClick={onLinkClick}>
-            Map
-          </NavLink>
-        </nav>
       </div>
-      <div className="nav-right">
+
+      {/* Vertical Navigation Menu */}
+      <nav className="sidebar-menu">
+        <NavLink to="/" className={navLinkClassName} onClick={onLinkClick} end>
+          <HomeIcon className="sidebar-icon" />
+          <span>Home</span>
+        </NavLink>
+        <NavLink to="/Notification" className={navLinkClassName} onClick={onLinkClick}>
+          <NotificationsIcon className="sidebar-icon" />
+          <span>Notifications</span>
+          {notificationCount > 0 && <span className="sidebar-notif-badge">{notificationCount}</span>}
+        </NavLink>
+        <NavLink to="/messages" className={navLinkClassName} onClick={onLinkClick}>
+          <ChatIcon className="sidebar-icon" />
+          <span>Messages</span>
+        </NavLink>
+        <NavLink to="/Add-post" className={navLinkClassName} onClick={onLinkClick}>
+          <AddBoxIcon className="sidebar-icon" />
+          <span>Create Post</span>
+        </NavLink>
+        <NavLink to="/Search" className={navLinkClassName} onClick={onLinkClick}>
+          <SearchIcon className="sidebar-icon" />
+          <span>Search</span>
+        </NavLink>
+        <NavLink to="/ProfileSetting" className={navLinkClassName} onClick={onLinkClick}>
+          <PersonIcon className="sidebar-icon" />
+          <span>Profile</span>
+        </NavLink>
+        <NavLink to="/map" className={navLinkClassName} onClick={onLinkClick}>
+          <MapIcon className="sidebar-icon" />
+          <span>Explore Map</span>
+        </NavLink>
+      </nav>
+
+      {/* Bottom User Controls */}
+      <div className="sidebar-bottom">
         <button
           aria-label="toggle-theme"
-          className="theme-toggle"
+          className="sidebar-theme-toggle"
           onClick={() => (toggleTheme ? toggleTheme() : document.body.classList.toggle("dark"))}
         >
-          {isDarkMode ? "🌙" : "🌞"}
+          {isDarkMode ? <LightModeIcon style={{ fontSize: 18 }} /> : <DarkModeIcon style={{ fontSize: 18 }} />}
+          <span>{isDarkMode ? "Light Mode" : "Dark Mode"}</span>
         </button>
-        <div className="nav-avatar" onClick={currentUser ? handleLogout : undefined} style={{ cursor: currentUser ? "pointer" : "default" }} title={currentUser ? "Click to Logout" : ""}>
-          {currentUser ? (
+
+        {currentUser && (
+          <div className="sidebar-user-card" onClick={handleLogout} title="Click to Logout">
             <img
               src={currentUser.profileImage || "/default-avatar.png"}
               alt={currentUser.username || "User"}
+              className="sidebar-user-avatar"
             />
-          ) : (
-            <Link to="/" className="nav-cta" onClick={onLinkClick}>
-              Sign In
-            </Link>
-          )}
-        </div>
+            <div className="sidebar-user-info">
+              <span className="sidebar-user-name">{currentUser.name || currentUser.username}</span>
+              <span className="sidebar-user-handle">@{currentUser.username}</span>
+            </div>
+            <LogoutIcon className="sidebar-logout-icon" fontSize="small" />
+          </div>
+        )}
       </div>
-    </header>
+    </aside>
   );
 };
 

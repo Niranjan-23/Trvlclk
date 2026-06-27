@@ -139,20 +139,42 @@ exports.likePost = async (req, res) => {
   }
 };
 
-// postController.js
+function getDistanceInKm(lat1, lon1, lat2, lon2) {
+  const R = 6371;
+  const dLat = (lat2 - lat1) * (Math.PI / 180);
+  const dLon = (lon2 - lon1) * (Math.PI / 180);
+  const a =
+    Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+    Math.cos(lat1 * (Math.PI / 180)) * Math.cos(lat2 * (Math.PI / 180)) *
+    Math.sin(dLon / 2) * Math.sin(dLon / 2);
+  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+  return R * c;
+}
+
 exports.getPostsByLocation = async (req, res) => {
   try {
     const { location } = req.params;
-    if (!location || typeof location !== "string" || location.trim() === "") {
-      return res.status(400).json({ error: "A valid location string is required" });
-    }
+    const reqLat = req.query.lat ? parseFloat(req.query.lat) : null;
+    const reqLng = req.query.lng ? parseFloat(req.query.lng) : null;
 
-    // Case-insensitive search for posts by location
-    const posts = await Post.find({
-      location: { $regex: location, $options: "i" }, // Case-insensitive regex match
-    })
+    let posts = await Post.find()
       .populate("user", "username profileImage")
       .sort({ createdAt: -1 });
+
+    if (reqLat !== null && !isNaN(reqLat) && reqLng !== null && !isNaN(reqLng)) {
+      posts = posts.filter((post) => {
+        if (post.latitude !== undefined && post.latitude !== null && post.longitude !== undefined && post.longitude !== null) {
+          const dist = getDistanceInKm(reqLat, reqLng, post.latitude, post.longitude);
+          return dist <= 10;
+        }
+        if (location && post.location) {
+          return new RegExp(location, "i").test(post.location);
+        }
+        return false;
+      });
+    } else if (location && typeof location === "string" && location.trim() !== "") {
+      posts = posts.filter((post) => post.location && new RegExp(location, "i").test(post.location));
+    }
 
     res.status(200).json({ posts });
   } catch (error) {

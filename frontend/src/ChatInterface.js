@@ -541,7 +541,7 @@ const ChatInterface = ({ loggedInUser }) => {
               style={{ width: "80%" }}
             />
             <IconButton type="submit" aria-label="search">
-              <SearchIcon style={{ fill: "blue" }} />
+              <SearchIcon style={{ fill: "currentColor" }} />
             </IconButton>
           </form>
           {showDropdown && filteredUsers.length > 0 && (
