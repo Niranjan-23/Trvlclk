@@ -391,99 +391,26 @@ const App = () => {
         </div>
       ) : (
         <div className={isDarkMode ? "app-container dark" : "app-container light"}>
-          {/* Desktop Nav */}
-          {!isMobile && (
-            <Nav
-              toggleTheme={toggleTheme}
-              isDarkMode={isDarkMode}
-              loggedInUser={loggedInUser}
-              handleLogout={handleLogout}
-            />
-          )}
-          {/* Mobile Top Bar */}
-          {isMobile && (
-            <>
-              <div className="mobile-topbar">
-                <IconButton
-                  className="mobile-menu-btn"
-                  color="inherit"
-                  onClick={() => {
-                    setDrawerOpen(true);
-                    console.log("Drawer open:", true); // Add this line
-                  }}
-                  size="large"
-                  aria-label="menu"
-                >
-                  <MoreVertIcon fontSize="large" />
-                </IconButton>
-                <img
-                  src={require("./assets/logo.png")}
-                  alt="TrvlClk Logo"
-                  className="mobile-logo"
-                />
-                <div className="mobile-actions">
-                  <IconButton onClick={toggleTheme} color="inherit" size="large">
-                    {isDarkMode ? <Brightness7Icon /> : <Brightness4Icon />}
-                  </IconButton>
-                  <IconButton onClick={handleLogout} color="inherit" size="large">
-                    <Avatar
-                      alt={loggedInUser?.username || "User"}
-                      src={loggedInUser?.profileImage || "/default-avatar.png"}
-                      className="avatar"
-                      sx={{ width: 32, height: 32 }}
-                    />
-                  </IconButton>
-                </div>
-              </div>
-              <Drawer
-                anchor="left"
-                open={drawerOpen}
-                onClose={() => setDrawerOpen(false)}
-                PaperProps={{ style: { width: 240 } }}
-              >
-                <Nav
-                  onLinkClick={() => setDrawerOpen(false)}
-                  toggleTheme={toggleTheme}
-                  isDarkMode={isDarkMode}
-                  loggedInUser={loggedInUser}
-                  handleLogout={handleLogout}
-                />
-              </Drawer>
-              <Routes>
-                <Route path="/messages/:recipientId?" element={<MessageComponent loggedInUser={loggedInUser} />} />
-                <Route path="/" element={<Home />} />
-                <Route path="/Notification" element={<Noti />} />
-                <Route path="/Add-post" element={<NewPost />} />
-                <Route path="/Search" element={<SearchProfile />} />
-                <Route path="/ProfileSetting" element={<ProfileComp userId={loggedInUser._id} />} />
-                <Route path="/user/:userId" element={<OtherUserProfile loggedInUser={loggedInUser} />} />
-                <Route path="/posts/:postId" element={<PostDetail />} />
-                <Route path="/map" element={<MapComponent loggedInUser={loggedInUser} isDarkMode={isDarkMode} />} />
-                <Route path="*" element={<div>404 - Page Not Found</div>} />
-              </Routes>
-            </>
-          )}
+          <Nav
+            toggleTheme={toggleTheme}
+            isDarkMode={isDarkMode}
+            loggedInUser={loggedInUser}
+            handleLogout={handleLogout}
+          />
           <div className="main-content">
-            {/* Desktop toolbar moved into Nav */}
             <Routes>
-              {isMobile ? (
-                <Route path="*" element={<Home />} />
-              ) : (
-                <>
-                  <Route path="/messages/:recipientId?" element={<MessageComponent loggedInUser={loggedInUser} />} />
-                  <Route path="/" element={<Home />} />
-                  <Route path="/Notification" element={<Noti />} />
-                  <Route path="/Add-post" element={<NewPost />} />
-                  <Route path="/Search" element={<SearchProfile />} />
-                  <Route path="/ProfileSetting" element={<ProfileComp userId={loggedInUser._id} />} />
-                  <Route path="/user/:userId" element={<OtherUserProfile loggedInUser={loggedInUser} />} />
-                  <Route path="/posts/:postId" element={<PostDetail />} />
-                  <Route path="/map" element={<MapComponent loggedInUser={loggedInUser} isDarkMode={isDarkMode} />} />
-                  <Route path="*" element={<div>404 - Page Not Found</div>} />
-                </>
-              )}
+              <Route path="/messages/:recipientId?" element={<MessageComponent loggedInUser={loggedInUser} />} />
+              <Route path="/" element={<Home />} />
+              <Route path="/Notification" element={<Noti />} />
+              <Route path="/Add-post" element={<NewPost />} />
+              <Route path="/Search" element={<SearchProfile />} />
+              <Route path="/ProfileSetting" element={<ProfileComp userId={loggedInUser._id} />} />
+              <Route path="/user/:userId" element={<OtherUserProfile loggedInUser={loggedInUser} />} />
+              <Route path="/posts/:postId" element={<PostDetail />} />
+              <Route path="/map" element={<MapComponent loggedInUser={loggedInUser} isDarkMode={isDarkMode} />} />
+              <Route path="*" element={<div>404 - Page Not Found</div>} />
             </Routes>
-            {!isMobile && showEdit && (
+            {showEdit && (
               <EditProfileComponent
                 user={loggedInUser}
                 onClose={handleCloseEdit}

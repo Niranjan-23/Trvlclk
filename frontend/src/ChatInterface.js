@@ -9,6 +9,7 @@ import SearchIcon from "@mui/icons-material/Search";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import CloseIcon from "@mui/icons-material/Close";
 import ReplyIcon from "@mui/icons-material/Reply";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import API_BASE_URL from "./config";
 import "./ChatInterface.css";
 import Post from "./Post"; // Import the Post component
@@ -29,6 +30,7 @@ const ChatInterface = ({ loggedInUser }) => {
   const [showDeleteFor, setShowDeleteFor] = useState(null);
   const [selectedPost, setSelectedPost] = useState(null); // State for selected post
   const [replyTo, setReplyTo] = useState(null);
+  const [showChatOnMobile, setShowChatOnMobile] = useState(false);
   const searchRef = useRef(null);
   const socketRef = useRef(null);
   const messagesEndRef = useRef(null);
@@ -270,6 +272,7 @@ const ChatInterface = ({ loggedInUser }) => {
     fetchConversation(user.id);
     setSearchQuery("");
     setShowDropdown(false);
+    setShowChatOnMobile(true);
   };
 
   const handlePostClick = async (msg) => {
@@ -523,7 +526,7 @@ const ChatInterface = ({ loggedInUser }) => {
   if (error) return <div className="error">{error}</div>;
 
   return (
-    <div className="chat-interface">
+    <div className={`chat-interface chat-wrapper ${showChatOnMobile ? "mobile-show-chat" : "mobile-show-list"}`}>
       {/* ===== SIDEBAR ===== */}
       <div className="chat-sidebar">
         <h3>Chats</h3>
@@ -582,6 +585,14 @@ const ChatInterface = ({ loggedInUser }) => {
         {activeChat ? (
           <>
             <div className="chat-header">
+              <IconButton
+                className="mobile-back-chat-btn"
+                onClick={() => setShowChatOnMobile(false)}
+                size="small"
+                style={{ marginRight: 8 }}
+              >
+                <ArrowBackIcon fontSize="small" />
+              </IconButton>
               <Avatar src={activeChat.profileImage} className="header-avatar" />
               <h2>{activeChat.name}</h2>
             </div>
@@ -777,17 +788,16 @@ const ChatInterface = ({ loggedInUser }) => {
             className="post-preview"
             onClick={e => e.stopPropagation()}
             style={{
-              padding: '20px',
-              borderRadius: '8px',
-              maxWidth: '90%',
+              width: '100%',
+              maxWidth: '440px',
               maxHeight: '90vh',
-              overflow: 'auto'
+              overflowY: 'auto'
             }}
           >
             <Post
               post={selectedPost}
               loggedInUser={loggedInUser}
-              showCommentsByDefault={false}
+              showCommentsByDefault={true}
             />
           </div>
         </div>

@@ -261,6 +261,11 @@
   color: #ff4757;
 }
 
+/* Mobile Top Header (Hidden on Desktop) */
+.mobile-top-header {
+  display: none;
+}
+
 @media (max-width: 900px) {
   .sidebar-container {
     width: 80px;
@@ -278,5 +283,89 @@
   .sidebar-theme-toggle {
     justify-content: center;
     padding: 10px;
+  }
+}
+
+@media (max-width: 600px) {
+  .mobile-top-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 64px;
+    padding: 0 16px;
+    z-index: 1000;
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+  }
+  .app-container.dark .mobile-top-header {
+    background: rgba(9, 9, 11, 0.9);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  }
+  .app-container.light .mobile-top-header {
+    background: rgba(248, 250, 252, 0.92);
+    border-bottom: 1px solid #cbd5e1;
+  }
+  .mobile-logo-img {
+    height: 54px;
+    max-width: 180px;
+    object-fit: contain;
+    display: block;
+  }
+  .mobile-header-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .mobile-icon-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    cursor: pointer;
+  }
+  .app-container.dark .mobile-icon-btn { background: rgba(255, 255, 255, 0.08); color: #ffffff; }
+  .app-container.light .mobile-icon-btn { background: #e2e8f0; color: #0f172a; }
+  .mobile-icon-btn.logout { color: #ff4757; }
+
+  .sidebar-container {
+    top: auto;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    width: 100vw;
+    height: 62px;
+    flex-direction: row;
+    padding: 0 8px;
+    border-right: none;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.2);
+  }
+  .app-container.dark .sidebar-container {
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  .app-container.light .sidebar-container {
+    border-top: 1px solid #cbd5e1;
+  }
+  .sidebar-top,
+  .sidebar-bottom {
+    display: none;
+  }
+  .sidebar-menu {
+    flex-direction: row;
+    width: 100%;
+    justify-content: space-around;
+    align-items: center;
+    margin: 0;
+    gap: 0;
+  }
+  .sidebar-item {
+    padding: 10px;
+    border-radius: 12px;
   }
 }

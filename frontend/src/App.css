@@ -30,6 +30,14 @@
 @media (max-width: 900px) {
   .main-content {
     margin-left: 80px;
+    padding: 20px 16px;
+  }
+}
+
+@media (max-width: 600px) {
+  .main-content {
+    margin-left: 0;
+    padding: 72px 12px 80px 12px;
   }
 }
 
@@ -79,52 +87,43 @@
   max-width: 95vw;
   width: fit-content;
   max-height: 90vh;
-  overflow: visible;
-  border-radius: 20px;
+  overflow: visible !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
 }
 
-.app-container.dark .post-modal-content {
-  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.9);
-  background: #0e0e11;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-}
-
-.app-container.light .post-modal-content {
-  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-}
-
-.post-modal-content .post-wrapper {
-  margin: 0;
-  box-shadow: none;
-  background: transparent;
+.post-modal-content .post-wrapper,
+.post-modal-content .mobile-post-wrapper {
+  margin: 0 !important;
 }
 
 .post-modal-close-btn {
   position: absolute;
-  top: -14px;
-  right: -14px;
-  background: #ffffff;
-  border: none;
-  color: #000000;
-  font-size: 16px;
-  font-weight: bold;
+  top: 10px;
+  right: 10px;
+  background: rgba(0, 0, 0, 0.7);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: #ffffff;
+  font-size: 18px;
+  line-height: 1;
   width: 32px;
   height: 32px;
   border-radius: 50%;
   cursor: pointer;
-  z-index: 100;
+  z-index: 9999;
   display: flex;
   align-items: center;
   justify-content: center;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-  transition: transform 0.2s ease;
+  transition: transform 0.2s ease, background 0.2s ease;
+  backdrop-filter: blur(8px);
 }
 
 .app-container.light .post-modal-close-btn {
-  background: #0f172a;
-  color: #ffffff;
+  background: rgba(255, 255, 255, 0.85);
+  border: 1px solid #cbd5e1;
+  color: #0f172a;
 }
 
 .post-modal-close-btn:hover {
@@ -133,16 +132,14 @@
 
 @media (max-width: 850px) {
   .post-modal-content {
-    overflow-y: auto;
-  }
-  .post-modal-content .post-wrapper {
-    flex-direction: column;
-    max-height: 85vh;
-  }
-  .post-modal-content .post-container,
-  .post-modal-content .comment-area {
     width: 100%;
-    max-width: 400px;
+    max-width: 440px;
+  }
+  .post-modal-content .post-wrapper,
+  .post-modal-content .mobile-post-wrapper {
+    width: 100%;
+    max-height: 85vh;
+    overflow-y: auto;
   }
 }
 

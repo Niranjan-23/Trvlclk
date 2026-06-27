@@ -45,74 +45,98 @@ const Nav = ({ onLinkClick, toggleTheme, isDarkMode, loggedInUser: propUser, han
   const navLinkClassName = ({ isActive }) => `sidebar-item${isActive ? " sidebar-item-active" : ""}`;
 
   return (
-    <aside className="sidebar-container">
-      {/* Top Brand Logo */}
-      <div className="sidebar-top">
-        <Link to="/" onClick={onLinkClick} className="sidebar-logo-link">
-          <img src={logo} alt="TrvlClk Logo" className="sidebar-logo-img" />
+    <>
+      {/* Mobile Top Header (Visible on Mobile) */}
+      <header className="mobile-top-header">
+        <Link to="/" onClick={onLinkClick} className="mobile-logo-link">
+          <img src={logo} alt="TrvlClk Logo" className="mobile-logo-img" />
         </Link>
-      </div>
+        <div className="mobile-header-right">
+          <button
+            aria-label="toggle-theme"
+            className="mobile-icon-btn"
+            onClick={() => (toggleTheme ? toggleTheme() : document.body.classList.toggle("dark"))}
+          >
+            {isDarkMode ? <LightModeIcon style={{ fontSize: 20 }} /> : <DarkModeIcon style={{ fontSize: 20 }} />}
+          </button>
+          {currentUser && (
+            <button className="mobile-icon-btn logout" onClick={handleLogout} title="Logout">
+              <LogoutIcon style={{ fontSize: 20 }} />
+            </button>
+          )}
+        </div>
+      </header>
 
-      {/* Vertical Navigation Menu */}
-      <nav className="sidebar-menu">
-        <NavLink to="/" className={navLinkClassName} onClick={onLinkClick} end>
-          <HomeIcon className="sidebar-icon" />
-          <span>Home</span>
-        </NavLink>
-        <NavLink to="/Notification" className={navLinkClassName} onClick={onLinkClick}>
-          <NotificationsIcon className="sidebar-icon" />
-          <span>Notifications</span>
-          {notificationCount > 0 && <span className="sidebar-notif-badge">{notificationCount}</span>}
-        </NavLink>
-        <NavLink to="/messages" className={navLinkClassName} onClick={onLinkClick}>
-          <ChatIcon className="sidebar-icon" />
-          <span>Messages</span>
-        </NavLink>
-        <NavLink to="/Add-post" className={navLinkClassName} onClick={onLinkClick}>
-          <AddBoxIcon className="sidebar-icon" />
-          <span>Create Post</span>
-        </NavLink>
-        <NavLink to="/Search" className={navLinkClassName} onClick={onLinkClick}>
-          <SearchIcon className="sidebar-icon" />
-          <span>Search</span>
-        </NavLink>
-        <NavLink to="/ProfileSetting" className={navLinkClassName} onClick={onLinkClick}>
-          <PersonIcon className="sidebar-icon" />
-          <span>Profile</span>
-        </NavLink>
-        <NavLink to="/map" className={navLinkClassName} onClick={onLinkClick}>
-          <MapIcon className="sidebar-icon" />
-          <span>Explore Map</span>
-        </NavLink>
-      </nav>
+      {/* Main Navigation Panel */}
+      <aside className="sidebar-container">
+        {/* Top Brand Logo */}
+        <div className="sidebar-top">
+          <Link to="/" onClick={onLinkClick} className="sidebar-logo-link">
+            <img src={logo} alt="TrvlClk Logo" className="sidebar-logo-img" />
+          </Link>
+        </div>
 
-      {/* Bottom User Controls */}
-      <div className="sidebar-bottom">
-        <button
-          aria-label="toggle-theme"
-          className="sidebar-theme-toggle"
-          onClick={() => (toggleTheme ? toggleTheme() : document.body.classList.toggle("dark"))}
-        >
-          {isDarkMode ? <LightModeIcon style={{ fontSize: 18 }} /> : <DarkModeIcon style={{ fontSize: 18 }} />}
-          <span>{isDarkMode ? "Light Mode" : "Dark Mode"}</span>
-        </button>
+        {/* Vertical Navigation Menu */}
+        <nav className="sidebar-menu">
+          <NavLink to="/" className={navLinkClassName} onClick={onLinkClick} end>
+            <HomeIcon className="sidebar-icon" />
+            <span>Home</span>
+          </NavLink>
+          <NavLink to="/Notification" className={navLinkClassName} onClick={onLinkClick}>
+            <NotificationsIcon className="sidebar-icon" />
+            <span>Notifications</span>
+            {notificationCount > 0 && <span className="sidebar-notif-badge">{notificationCount}</span>}
+          </NavLink>
+          <NavLink to="/messages" className={navLinkClassName} onClick={onLinkClick}>
+            <ChatIcon className="sidebar-icon" />
+            <span>Messages</span>
+          </NavLink>
+          <NavLink to="/Add-post" className={navLinkClassName} onClick={onLinkClick}>
+            <AddBoxIcon className="sidebar-icon" />
+            <span>Create Post</span>
+          </NavLink>
+          <NavLink to="/Search" className={navLinkClassName} onClick={onLinkClick}>
+            <SearchIcon className="sidebar-icon" />
+            <span>Search</span>
+          </NavLink>
+          <NavLink to="/ProfileSetting" className={navLinkClassName} onClick={onLinkClick}>
+            <PersonIcon className="sidebar-icon" />
+            <span>Profile</span>
+          </NavLink>
+          <NavLink to="/map" className={navLinkClassName} onClick={onLinkClick}>
+            <MapIcon className="sidebar-icon" />
+            <span>Explore Map</span>
+          </NavLink>
+        </nav>
 
-        {currentUser && (
-          <div className="sidebar-user-card" onClick={handleLogout} title="Click to Logout">
-            <img
-              src={currentUser.profileImage || "/default-avatar.png"}
-              alt={currentUser.username || "User"}
-              className="sidebar-user-avatar"
-            />
-            <div className="sidebar-user-info">
-              <span className="sidebar-user-name">{currentUser.name || currentUser.username}</span>
-              <span className="sidebar-user-handle">@{currentUser.username}</span>
+        {/* Bottom User Controls */}
+        <div className="sidebar-bottom">
+          <button
+            aria-label="toggle-theme"
+            className="sidebar-theme-toggle"
+            onClick={() => (toggleTheme ? toggleTheme() : document.body.classList.toggle("dark"))}
+          >
+            {isDarkMode ? <LightModeIcon style={{ fontSize: 18 }} /> : <DarkModeIcon style={{ fontSize: 18 }} />}
+            <span>{isDarkMode ? "Light Mode" : "Dark Mode"}</span>
+          </button>
+
+          {currentUser && (
+            <div className="sidebar-user-card" onClick={handleLogout} title="Click to Logout">
+              <img
+                src={currentUser.profileImage || "/default-avatar.png"}
+                alt={currentUser.username || "User"}
+                className="sidebar-user-avatar"
+              />
+              <div className="sidebar-user-info">
+                <span className="sidebar-user-name">{currentUser.name || currentUser.username}</span>
+                <span className="sidebar-user-handle">@{currentUser.username}</span>
+              </div>
+              <LogoutIcon className="sidebar-logout-icon" fontSize="small" />
             </div>
-            <LogoutIcon className="sidebar-logout-icon" fontSize="small" />
-          </div>
-        )}
-      </div>
-    </aside>
+          )}
+        </div>
+      </aside>
+    </>
   );
 };
 

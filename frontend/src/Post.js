@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import './Post.css';
+import MobilePost from './MobilePost';
 import FavoriteTwoToneIcon from '@mui/icons-material/FavoriteTwoTone';
 import ChatBubbleTwoToneIcon from '@mui/icons-material/ChatBubbleTwoTone';
 import SendTwoToneIcon from '@mui/icons-material/SendTwoTone';
@@ -21,8 +22,15 @@ const Post = ({ post, loggedInUser, showCommentsByDefault = false }) => {
   const [postLikes, setPostLikes] = useState(post.likes || []);
   const [followers, setFollowers] = useState([]);
   const [openSendDialog, setOpenSendDialog] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const postContainerRef = useRef(null);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   const hasLiked = postLikes.some(id => id.toString() === loggedInUser?._id);
 
@@ -116,6 +124,10 @@ const Post = ({ post, loggedInUser, showCommentsByDefault = false }) => {
       console.error("Error sending post preview:", error);
     }
   };
+
+  if (isMobile) {
+    return <MobilePost post={post} loggedInUser={loggedInUser} showCommentsByDefault={showCommentsByDefault} />;
+  }
 
   return (
     <div className="post-wrapper">

@@ -9,7 +9,7 @@ const Masonry = ({
   const [containerWidth, setContainerWidth] = useState(0);
 
   const getColumnCount = (width) => {
-    if (width <= 600) return 2;
+    if (width <= 600) return 3;
     if (width <= 900) return 3;
     if (width <= 1200) return 4;
     return 5;
@@ -59,7 +59,8 @@ const Masonry = ({
 
       const left = minCol * (colWidth + gap);
       const top = colHeights[minCol];
-      const itemHeight = item.height || 300;
+      const rawHeight = item.height || 300;
+      const itemHeight = containerWidth <= 600 ? Math.min(rawHeight * 0.52, 160 + (index % 3) * 25) : rawHeight;
 
       colHeights[minCol] += itemHeight + gap;
 

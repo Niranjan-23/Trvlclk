@@ -362,7 +362,14 @@
   }
 
   .post-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 10px;
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 8px !important;
+  }
+
+  .post-overlay-card-wrapper {
+    width: 100% !important;
+    max-width: 440px !important;
+    max-height: 85vh !important;
+    overflow-y: auto !important;
   }
 }
