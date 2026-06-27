@@ -1,7 +1,9 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { BrowserRouter as Router, Route, Routes, Navigate, useParams, useNavigate } from "react-router-dom";
 import Nav from "./Nav";
 import Post from "./Post";
+import Masonry from "./Masonry";
+import gsap from "gsap";
 import LoginPage from "./LoginPage";
 import "./App.css";
 import AddPost from "./AddPost";
@@ -110,6 +112,9 @@ const App = () => {
 
   const Home = () => {
     const [timelinePosts, setTimelinePosts] = useState([]);
+    const [selectedPost, setSelectedPost] = useState(null);
+    const backdropRef = useRef(null);
+    const modalContentRef = useRef(null);
 
     useEffect(() => {
       const fetchTimeline = async () => {
@@ -135,14 +140,94 @@ const App = () => {
       }
     }, [loggedInUser]);
 
+    const items = useMemo(() => {
+      const defaultHeights = [320, 420, 280, 380, 460, 300, 350, 400];
+      return timelinePosts.map((post, index) => ({
+        id: post._id,
+        img: post.imageUrl || post.image || 'https://images.pexels.com/photos/8952192/pexels-photo-8952192.jpeg?auto=compress&cs=tinysrgb&w=600&lazy=load',
+        url: "#",
+        height: defaultHeights[index % defaultHeights.length],
+        post: post,
+      }));
+    }, [timelinePosts]);
+
+    const handleItemClick = (item) => {
+      setSelectedPost(item.post);
+    };
+
+    useEffect(() => {
+      if (selectedPost && backdropRef.current && modalContentRef.current) {
+        gsap.fromTo(
+          backdropRef.current,
+          { opacity: 0 },
+          { opacity: 1, duration: 0.3, ease: "power2.out" }
+        );
+        gsap.fromTo(
+          modalContentRef.current,
+          { scale: 0.7, opacity: 0, y: 30 },
+          { scale: 1, opacity: 1, y: 0, duration: 0.4, ease: "power3.out" }
+        );
+      }
+    }, [selectedPost]);
+
+    const handleCloseModal = () => {
+      if (backdropRef.current && modalContentRef.current) {
+        gsap.to(backdropRef.current, {
+          opacity: 0,
+          duration: 0.3,
+          ease: "power2.in",
+        });
+        gsap.to(modalContentRef.current, {
+          scale: 0.7,
+          opacity: 0,
+          y: 30,
+          duration: 0.3,
+          ease: "power3.in",
+          onComplete: () => {
+            setSelectedPost(null);
+          },
+        });
+      } else {
+        setSelectedPost(null);
+      }
+    };
+
     return (
-      <div className="posts-container">
+      <div className="posts-container" style={{ position: "relative" }}>
         {timelinePosts.length > 0 ? (
-          timelinePosts.map((post, index) => (
-            <Post key={index} post={post} loggedInUser={loggedInUser} />
-          ))
+          <Masonry
+            items={items}
+            ease="power3.out"
+            duration={0.6}
+            stagger={0.05}
+            animateFrom="bottom"
+            scaleOnHover
+            hoverScale={0.95}
+            blurToFocus
+            colorShiftOnHover={false}
+            onItemClick={handleItemClick}
+          />
         ) : (
           <p>No posts to display</p>
+        )}
+
+        {selectedPost && (
+          <div
+            ref={backdropRef}
+            className="post-modal-backdrop"
+            onClick={handleCloseModal}
+          >
+            <div
+              ref={modalContentRef}
+              className="post-modal-content"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button className="post-modal-close-btn" onClick={handleCloseModal}>
+                &times;
+              </button>
+              <Post post={selectedPost} loggedInUser={loggedInUser} showCommentsByDefault={true} />
+            </div>
+          </div>
         )}
       </div>
     );

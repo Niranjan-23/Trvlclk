@@ -74,7 +74,7 @@ const Nav = ({ onLinkClick, toggleTheme, isDarkMode, loggedInUser: propUser, han
         >
           {isDarkMode ? "🌙" : "🌞"}
         </button>
-        <div className="nav-avatar">
+        <div className="nav-avatar" onClick={currentUser ? handleLogout : undefined} style={{ cursor: currentUser ? "pointer" : "default" }} title={currentUser ? "Click to Logout" : ""}>
           {currentUser ? (
             <img
               src={currentUser.profileImage || "/default-avatar.png"}

@@ -22,7 +22,8 @@ exports.getConversation = async (req, res) => {
 
 exports.sendMessage = async (req, res) => {
   try {
-    const { senderId, recipientId, text, messageType, imageUrl, post } = req.body;
+    const { senderId, recipientId, text, messageType, imageUrl, post, replyTo } = req.body;
+    console.log("[DEBUG BACKEND] sendMessage req.body.replyTo:", req.body.replyTo);
 
     // Find or create conversation
     let conversation = await Conversation.findOne({
@@ -42,6 +43,7 @@ exports.sendMessage = async (req, res) => {
       text,
       messageType: messageType || 'text',
       imageUrl,
+      replyTo: replyTo || undefined,
       post: post ? {
         _id: post._id,
         imageUrl: post.imageUrl,
@@ -52,15 +54,29 @@ exports.sendMessage = async (req, res) => {
       } : undefined
     };
 
+    console.log("[DEBUG BACKEND] newMessage.replyTo:", newMessage.replyTo);
     conversation.messages.push(newMessage);
     await conversation.save();
+    const lastSavedMsg = conversation.messages[conversation.messages.length - 1];
+    console.log("[DEBUG BACKEND] saved last message object:", lastSavedMsg);
+
+    const io = req.app.get('io');
+    if (io) {
+      const socketPayload = {
+        conversationId: conversation._id,
+        message: lastSavedMsg
+      };
+      io.to(conversation._id.toString()).emit('receive_message', socketPayload);
+      io.to(recipientId.toString()).emit('receive_message', socketPayload);
+    }
 
     res.status(200).json({ 
       conversation: {
         ...conversation.toObject(),
         messages: conversation.messages.map(msg => ({
           ...msg.toObject(),
-          post: msg.post // Ensure post data is included
+          post: msg.post,
+          replyTo: msg.replyTo
         }))
       }
     });
@@ -90,6 +106,16 @@ exports.deleteMessage = async (req, res) => {
     conversation.messages.pull(messageId);
 
     await conversation.save();
+
+    const io = req.app.get('io');
+    if (io) {
+      const deletePayload = { conversationId, messageId };
+      io.to(conversationId.toString()).emit('delete_message', deletePayload);
+      conversation.participants.forEach(pId => {
+        io.to(pId.toString()).emit('delete_message', deletePayload);
+      });
+    }
+
     res.status(200).json({ conversation });
   } catch (error) {
     console.error("Error deleting message:", error);

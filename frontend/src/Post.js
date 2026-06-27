@@ -122,7 +122,7 @@ const Post = ({ post, loggedInUser, showCommentsByDefault = false }) => {
         console.error('Failed to send post preview');
         return;
       }
-      
+
       console.log('Post sent successfully');
       setOpenSendDialog(false);
     } catch (error) {

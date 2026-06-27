@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useParams } from "react-router-dom";
+import { io } from "socket.io-client";
 import Avatar from "@mui/material/Avatar";
 import TextField from "@mui/material/TextField";
 import IconButton from "@mui/material/IconButton";
@@ -7,6 +8,7 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import SearchIcon from "@mui/icons-material/Search";
 import MoreVertIcon from "@mui/icons-material/MoreVert";
 import CloseIcon from "@mui/icons-material/Close";
+import ReplyIcon from "@mui/icons-material/Reply";
 import API_BASE_URL from "./config";
 import "./ChatInterface.css";
 import Post from "./Post"; // Import the Post component
@@ -28,6 +30,75 @@ const ChatInterface = ({ loggedInUser }) => {
   const [selectedPost, setSelectedPost] = useState(null); // State for selected post
   const [replyTo, setReplyTo] = useState(null);
   const searchRef = useRef(null);
+  const socketRef = useRef(null);
+  const messagesEndRef = useRef(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  const reorderChatList = useCallback((targetUserId, latestMsg) => {
+    setChatUsers((prevChatUsers) => {
+      const index = prevChatUsers.findIndex((u) => u.id === targetUserId);
+      if (index === -1) return prevChatUsers;
+      const updatedUser = {
+        ...prevChatUsers[index],
+        messages: [...(prevChatUsers[index].messages || []), latestMsg],
+      };
+      const filtered = prevChatUsers.filter((u) => u.id !== targetUserId);
+      return [updatedUser, ...filtered];
+    });
+  }, []);
+
+  useEffect(() => {
+    const socket = io(API_BASE_URL);
+    socketRef.current = socket;
+
+    if (loggedInUser && loggedInUser._id) {
+      socket.emit("join_user", loggedInUser._id);
+    }
+
+    socket.on("receive_message", (data) => {
+      console.log("[Socket.io FRONTEND] receive_message event:", data);
+      const incomingMsg = data.message || data;
+      if (incomingMsg) {
+        setMessages((prevMessages) => {
+          if (prevMessages.some((m) => m._id === incomingMsg._id)) {
+            return prevMessages;
+          }
+          return [...prevMessages, incomingMsg];
+        });
+        const otherUserId =
+          incomingMsg.sender === loggedInUser?._id
+            ? activeChat?.id
+            : incomingMsg.sender;
+        if (otherUserId) {
+          reorderChatList(otherUserId, incomingMsg);
+        }
+      }
+    });
+
+    socket.on("delete_message", (data) => {
+      console.log("[Socket.io FRONTEND] delete_message event:", data);
+      if (data && data.messageId) {
+        setMessages((prevMessages) => prevMessages.filter((m) => m._id !== data.messageId));
+      }
+    });
+
+    return () => {
+      socket.disconnect();
+    };
+  }, [loggedInUser?._id, activeChat?.id, reorderChatList]);
+
+  useEffect(() => {
+    if (socketRef.current && conversationId) {
+      socketRef.current.emit("join_conversation", conversationId);
+    }
+  }, [conversationId]);
 
   // Helper to format timestamps relative to now
   const formatRelativeTime = (timestamp) => {
@@ -78,9 +149,13 @@ const ChatInterface = ({ loggedInUser }) => {
       fetchConversationForFollower(follower)
     );
     const followersWithConversations = await Promise.all(conversationPromises);
-    return followersWithConversations.filter(
-      (follower) => follower.messages.length > 0
-    );
+    return followersWithConversations
+      .filter((follower) => follower.messages.length > 0)
+      .sort((a, b) => {
+        const lastA = new Date(a.messages[a.messages.length - 1]?.createdAt || 0);
+        const lastB = new Date(b.messages[b.messages.length - 1]?.createdAt || 0);
+        return lastB - lastA;
+      });
   };
 
   // Fetch followers from the backend
@@ -283,15 +358,16 @@ const ChatInterface = ({ loggedInUser }) => {
       recipientId: activeChat.id,
       text: newMessage,
       replyTo: replyTo ? {
-        _id: replyTo._id,
-        sender: replyTo.sender,
-        text: replyTo.text,
-        messageType: replyTo.messageType || 'text',
-        imageUrl: replyTo.imageUrl
+        _id: replyTo._id || replyTo.id || Date.now().toString(),
+        sender: typeof replyTo.sender === 'object' ? replyTo.sender._id : replyTo.sender,
+        text: replyTo.text || (replyTo.messageType === 'image' ? 'Photo' : ''),
+        messageType: replyTo.messageType || (isImageUrl(replyTo.text || replyTo.imageUrl) ? 'image' : 'text'),
+        imageUrl: replyTo.imageUrl || (replyTo.messageType === 'image' || isImageUrl(replyTo.text) ? (replyTo.imageUrl || replyTo.text) : '')
       } : null,
       messageType: 'text'
     };
 
+    console.log("[DEBUG FRONTEND] sending payload:", payload);
     const response = await fetch(`${API_BASE_URL}/api/conversations`, {
       method: "POST",
       headers: {
@@ -303,10 +379,15 @@ const ChatInterface = ({ loggedInUser }) => {
 
     if (response.ok) {
       const data = await response.json();
+      console.log("[DEBUG FRONTEND] backend returned conversation messages:", data.conversation.messages);
       if (data.conversation && data.conversation._id) {
         setConversationId(data.conversation._id);
       }
       setMessages(data.conversation.messages);
+      if (data.conversation && data.conversation.messages && activeChat?.id) {
+        const lastMsg = data.conversation.messages[data.conversation.messages.length - 1];
+        reorderChatList(activeChat.id, lastMsg);
+      }
       setNewMessage("");
       setReplyTo(null); // clear reply after sending
       if (!chatUsers.find((user) => user.id === activeChat.id)) {
@@ -353,6 +434,9 @@ const ChatInterface = ({ loggedInUser }) => {
       }
       const data = await response.json();
       setMessages(data.conversation.messages);
+      if (socketRef.current) {
+        socketRef.current.emit("delete_message", { conversationId, messageId, recipientId: activeChat?.id });
+      }
     } catch (err) {
       console.error("Error deleting message:", err);
     }
@@ -506,10 +590,11 @@ const ChatInterface = ({ loggedInUser }) => {
                 messages.map((msg, index) => {
                   const isSent = msg.sender === loggedInUser._id;
                   const messageId = msg._id || index;
+                  if (msg.replyTo) console.log("[DEBUG FRONTEND RENDER] Rendering message with replyTo:", messageId, msg.replyTo);
                   return (
                     <div
                       key={messageId}
-                      className={`message-row ${isSent ? "sent-row" : "received-row"}`}
+                      className={`message-row ${isSent ? "sent-row" : "received-row"} ${showDeleteFor === messageId ? "active-dropdown" : ""}`}
                     >
                       {!isSent && (
                         <Avatar
@@ -518,22 +603,31 @@ const ChatInterface = ({ loggedInUser }) => {
                         />
                       )}
                       <div className={isSent ? "sent" : "received"}>
-                        {/* --- Instagram-style reply preview above bubble --- */}
-                        {msg.replyTo && (
+                        {/* --- WhatsApp/Instagram style reply preview inside bubble --- */}
+                        {msg.replyTo && (msg.replyTo.text || msg.replyTo.imageUrl || msg.replyTo.messageType === 'image') && (
                           <div className="insta-reply-preview">
                             <div className="insta-reply-author">
-                              {msg.replyTo.sender === loggedInUser._id
+                              {String(typeof msg.replyTo.sender === 'object' ? msg.replyTo.sender._id : msg.replyTo.sender) === String(loggedInUser._id)
                                 ? "You"
                                 : activeChat?.name || "User"}
                             </div>
-                            <div className="insta-reply-text">
-                              {msg.replyTo.messageType === "image" 
-                                ? "📷 Photo"
-                                : msg.replyTo.text
-                                ? msg.replyTo.text.length > 40
-                                  ? msg.replyTo.text.slice(0, 40) + "..."
-                                  : msg.replyTo.text
-                                : "Media"}
+                            <div className="insta-reply-snippet">
+                              {msg.replyTo.messageType === "image" || isImageUrl(msg.replyTo.text || msg.replyTo.imageUrl) ? (
+                                <div className="insta-reply-media-box">
+                                  <span>📷 Photo</span>
+                                  {(msg.replyTo.imageUrl || msg.replyTo.text) && (
+                                    <img
+                                      src={msg.replyTo.imageUrl || msg.replyTo.text}
+                                      alt="preview"
+                                      className="insta-reply-thumb"
+                                    />
+                                  )}
+                                </div>
+                              ) : (
+                                <span className="insta-reply-text">
+                                  {msg.replyTo.text}
+                                </span>
+                              )}
                             </div>
                           </div>
                         )}
@@ -552,13 +646,20 @@ const ChatInterface = ({ loggedInUser }) => {
                             {showDeleteFor === messageId && (
                               <div
                                 className={`delete-dropdown ${isSent ? "left" : "right"}`}
-                                style={{
-                                  animation: "dropdownIn 0.25s cubic-bezier(.4,2,.6,1) both"
-                                }}
                               >
                                 <div className="dropdown-arrow" />
                                 <button
-                                  className="delete-dropdown-btn"
+                                  className="dropdown-action-btn reply-action-btn"
+                                  onClick={() => {
+                                    handleReply(msg);
+                                    setShowDeleteFor(null);
+                                  }}
+                                >
+                                  <ReplyIcon fontSize="small" />
+                                  <span>Reply</span>
+                                </button>
+                                <button
+                                  className="dropdown-action-btn delete-action-btn"
                                   onClick={() => {
                                     deleteMessage(msg._id);
                                     setShowDeleteFor(null);
@@ -566,15 +667,6 @@ const ChatInterface = ({ loggedInUser }) => {
                                 >
                                   <DeleteIcon fontSize="small" />
                                   <span>Delete</span>
-                                </button>
-                                <button
-                                  className="delete-dropdown-btn"
-                                  onClick={() => {
-                                    handleReply(msg);
-                                    setShowDeleteFor(null);
-                                  }}
-                                >
-                                  💬 <span>Reply</span>
                                 </button>
                               </div>
                             )}
@@ -613,12 +705,34 @@ const ChatInterface = ({ loggedInUser }) => {
               ) : (
                 <div className="no-messages">Start a convo!</div>
               )}
+              <div ref={messagesEndRef} />
             </div>
-            {/* Reply bar */}
+            {/* WhatsApp / Instagram style Reply Preview Bar above typing input */}
             {replyTo && (
-              <div className="reply-bar">
-                <span>Replying to: {replyTo.text || "Media"}</span>
-                <IconButton size="small" onClick={cancelReply}>
+              <div className="reply-bar-container">
+                <div className="reply-bar-accent" />
+                <div className="reply-bar-content">
+                  <div className="reply-bar-author">
+                    Replying to {replyTo.sender === loggedInUser._id ? "yourself" : activeChat?.name || "User"}
+                  </div>
+                  <div className="reply-bar-snippet">
+                    {replyTo.messageType === "image" || isImageUrl(replyTo.text || replyTo.imageUrl) ? (
+                      <span className="reply-bar-media">
+                        📷 Photo
+                      </span>
+                    ) : (
+                      replyTo.text || "Message"
+                    )}
+                  </div>
+                </div>
+                {(replyTo.messageType === "image" || isImageUrl(replyTo.text || replyTo.imageUrl)) && (
+                  <img
+                    src={replyTo.imageUrl || replyTo.text}
+                    alt="Reply thumbnail"
+                    className="reply-bar-thumb"
+                  />
+                )}
+                <IconButton size="small" onClick={cancelReply} className="reply-bar-close">
                   <CloseIcon fontSize="small" />
                 </IconButton>
               </div>

@@ -301,3 +301,80 @@ body, html {
 .masonry-grid_column > div {
   margin-bottom: 20px;
 }
+
+/* Instagram Explore Style Post Modal Overlay */
+.post-modal-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.75);
+  backdrop-filter: blur(8px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000;
+  padding: 20px;
+}
+
+.post-modal-content {
+  position: relative;
+  max-width: 95vw;
+  width: fit-content;
+  max-height: 90vh;
+  overflow: visible;
+  border-radius: 16px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+}
+
+.post-modal-content .post-wrapper {
+  margin: 0;
+  box-shadow: none;
+}
+
+.post-modal-content::-webkit-scrollbar {
+  display: none;
+}
+
+.post-modal-close-btn {
+  position: absolute;
+  top: -14px;
+  right: -14px;
+  background: #ff4757;
+  border: 2px solid #ffffff;
+  color: #ffffff;
+  font-size: 20px;
+  font-weight: bold;
+  line-height: 1;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  cursor: pointer;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.post-modal-close-btn:hover {
+  background: #ff6b81;
+  transform: scale(1.15);
+}
+
+@media (max-width: 850px) {
+  .post-modal-content {
+    overflow-y: auto;
+  }
+  .post-modal-content .post-wrapper {
+    flex-direction: column;
+    max-height: 85vh;
+  }
+  .post-modal-content .post-container,
+  .post-modal-content .comment-area {
+    width: 100%;
+    max-width: 400px;
+  }
+}

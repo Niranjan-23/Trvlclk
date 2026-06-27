@@ -129,7 +129,7 @@ export default function Comment({ postId, loggedInUser }) {
                 <Grid item>
                   {/* Delete button */}
                   <IconButton color="secondary" onClick={() => handleDeleteComment(comment._id)}>
-                    <DeleteIcon fontSize='small'/>
+                    <DeleteIcon fontSize='small' />
                   </IconButton>
                 </Grid>
               </Grid>

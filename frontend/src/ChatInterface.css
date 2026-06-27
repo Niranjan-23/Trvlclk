@@ -359,83 +359,106 @@
   animation: fadeIn 0.2s ease;
 }
 
-/* Animated dropdown for delete */
+/* Active message row stacking context when menu is open */
+.message-row.active-dropdown {
+  z-index: 999;
+}
+
+/* Animated options dropdown */
 .delete-dropdown {
   position: absolute;
-  min-width: 120px;
-  background: #fff;
+  min-width: 130px;
+  background: #ffffff;
   border-radius: 12px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.18), 0 1.5px 6px rgba(0, 132, 255, 0.08);
-  z-index: 20;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25), 0 0 10px rgba(0, 132, 255, 0.15);
+  z-index: 1000;
   display: flex;
   flex-direction: column;
   align-items: stretch;
-  padding: 8px 0 4px 0;
-  opacity: 0.98;
-  transform: translateY(8px) scale(0.98);
-  transition: box-shadow 0.2s, transform 0.2s;
-  animation: dropdownIn 0.25s cubic-bezier(.4, 2, .6, 1) both;
+  padding: 6px;
+  opacity: 1;
+  animation: dropdownIn 0.2s cubic-bezier(.4, 1.4, .6, 1) both;
+}
+
+.dark .delete-dropdown {
+  background: #2a2a2a;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
 }
 
 @keyframes dropdownIn {
   from {
     opacity: 0;
-    transform: translateY(-10px) scale(0.95);
+    transform: translateY(-8px) scale(0.92);
   }
   to {
     opacity: 1;
-    transform: translateY(8px) scale(1);
+    transform: translateY(4px) scale(1);
   }
 }
 
-/* Position for sent (left) and received (right) */
+/* Position for sent (left side) and received (right side) */
 .delete-dropdown.right {
-  left: 32px;
-  top: 24px;
+  left: 20px;
+  top: 28px;
 }
 .delete-dropdown.left {
-  right: 32px;
-  top: 24px;
+  right: 20px;
+  top: 28px;
 }
 
 /* Arrow styling */
 .delete-dropdown .dropdown-arrow {
   width: 0;
   height: 0;
-  border-left: 9px solid transparent;
-  border-right: 9px solid transparent;
-  border-bottom: 9px solid #fff;
+  border-left: 7px solid transparent;
+  border-right: 7px solid transparent;
+  border-bottom: 7px solid #ffffff;
   position: absolute;
-  top: -9px;
-  left: 24px;
-  filter: drop-shadow(0 2px 2px rgba(0, 0, 0, 0.08));
+  top: -7px;
+  left: 14px;
+}
+.dark .delete-dropdown .dropdown-arrow {
+  border-bottom-color: #2a2a2a;
 }
 .delete-dropdown.left .dropdown-arrow {
   left: auto;
-  right: 24px;
+  right: 14px;
 }
 
-/* Button styling */
-.delete-dropdown-btn {
+/* Dropdown action button styling */
+.dropdown-action-btn {
   display: flex;
   align-items: center;
   background: none;
   border: none;
-  color: #d32f2f;
-  font-weight: 500;
-  font-size: 15px;
-  padding: 8px 18px 8px 14px;
+  font-weight: 600;
+  font-size: 14px;
+  padding: 8px 14px;
   border-radius: 8px;
   cursor: pointer;
-  transition: background 0.18s, color 0.18s;
-  gap: 8px;
+  transition: background 0.18s ease, color 0.18s ease, transform 0.15s ease;
+  gap: 10px;
 }
 
-.delete-dropdown-btn:hover {
-  background: #ffeaea;
-  color: #b71c1c;
-  transform: translateX(2px) scale(1.04);
-  box-shadow: 0 2px 8px rgba(211, 47, 47, 0.08);
+.reply-action-btn {
+  color: #0084ff;
+}
+.dark .reply-action-btn {
+  color: #3897f0;
+}
+.reply-action-btn:hover {
+  background: rgba(0, 132, 255, 0.1);
+  transform: translateX(2px);
+}
+
+.delete-action-btn {
+  color: #ff4757;
+}
+.delete-action-btn:hover {
+  background: rgba(255, 71, 87, 0.1);
+  color: #ff6b81;
+  transform: translateX(2px);
 }
 
 /* Chat Image Styling */
@@ -779,90 +802,163 @@
   }
 }
 
-/* Reply bar styling */
-.reply-bar {
+/* WhatsApp / Instagram Style Reply Bar above typing input */
+.reply-bar-container {
   display: flex;
   align-items: center;
-  background: #e3f2fd;
-  color: #1976d2;
-  padding: 6px 12px;
-  border-radius: 8px 8px 0 0;
-  margin: 0 0 2px 0;
-  font-size: 0.95rem;
+  background: rgba(255, 255, 255, 0.95);
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  padding: 8px 16px;
   position: relative;
-  animation: fadeIn 0.2s;
-}
-.reply-bar .MuiIconButton-root {
-  margin-left: 8px;
-  color: #1976d2;
+  animation: slideUpReply 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  gap: 12px;
+  z-index: 5;
 }
 
-/* Reply preview in message */
-.reply-preview {
-  background: #f1f1f1;
-  color: #1976d2;
-  padding: 4px 10px;
+.dark .reply-bar-container {
+  background: rgba(40, 40, 40, 0.95);
+  border-top-color: rgba(255, 255, 255, 0.1);
+  border-bottom-color: rgba(255, 255, 255, 0.05);
+}
+
+@keyframes slideUpReply {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.reply-bar-accent {
+  width: 4px;
+  height: 38px;
+  background: #0084ff;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+
+.reply-bar-content {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.reply-bar-author {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #0084ff;
+  margin-bottom: 2px;
+}
+
+.dark .reply-bar-author {
+  color: #3897f0;
+}
+
+.reply-bar-snippet {
+  font-size: 0.88rem;
+  color: #555;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dark .reply-bar-snippet {
+  color: #ccc;
+}
+
+.reply-bar-media {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 500;
+}
+
+.reply-bar-thumb {
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
   border-radius: 6px;
-  font-size: 0.9em;
-  margin-bottom: 4px;
-  opacity: 0.85;
-  border-left: 3px solid #1976d2;
+  flex-shrink: 0;
 }
 
-/* Instagram-style reply preview */
+.reply-bar-close {
+  color: #888 !important;
+  transition: transform 0.2s ease, color 0.2s ease !important;
+}
+
+.reply-bar-close:hover {
+  color: #ff4757 !important;
+  transform: scale(1.15);
+}
+
+/* Quoted message preview inside message bubbles */
 .insta-reply-preview {
   background: rgba(0, 0, 0, 0.06);
   border-radius: 8px;
-  padding: 8px 12px;
+  padding: 6px 10px;
   margin-bottom: 6px;
-  max-width: 250px;
+  max-width: 100%;
   position: relative;
-  border-left: 3px solid #1976d2;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+  border-left: 4px solid #0084ff;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.04);
 }
 
 .sent .insta-reply-preview {
-  background: rgba(255, 255, 255, 0.15);
-  border-left: 3px solid rgba(255, 255, 255, 0.9);
-  margin-left: auto;
+  background: rgba(255, 255, 255, 0.2);
+  border-left: 4px solid #ffffff;
 }
 
 .insta-reply-author {
-  color: #1976d2;
-  font-weight: 600;
-  font-size: 0.85em;
-  margin-bottom: 4px;
+  color: #0084ff;
+  font-weight: 700;
+  font-size: 0.8rem;
+  margin-bottom: 2px;
 }
 
 .sent .insta-reply-author {
-  color: rgba(255, 255, 255, 0.95);
+  color: #ffffff;
+}
+
+.insta-reply-snippet {
+  font-size: 0.85rem;
+  color: #444;
+  word-break: break-word;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.sent .insta-reply-snippet,
+.sent .insta-reply-text {
+  color: rgba(255, 255, 255, 0.9);
 }
 
 .insta-reply-text {
-  color: #444;
-  font-size: 0.9em;
-  opacity: 0.9;
-  word-break: break-word;
-  white-space: pre-line;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px;
+  display: block;
 }
 
-.sent .insta-reply-text {
-  color: rgba(255, 255, 255, 0.85);
+.insta-reply-media-box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  gap: 8px;
 }
 
-/* Add connecting line effect */
-.insta-reply-preview::before {
-  content: '';
-  position: absolute;
-  bottom: -6px;
-  left: 12px;
-  width: 2px;
-  height: 6px;
-  background: rgba(25, 118, 210, 0.4);
-}
-
-.sent .insta-reply-preview::before {
-  left: auto;
-  right: 12px;
-  background: rgba(255, 255, 255, 0.4);
+.insta-reply-thumb {
+  width: 32px;
+  height: 32px;
+  object-fit: cover;
+  border-radius: 4px;
 }
