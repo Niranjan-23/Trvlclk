@@ -31,6 +31,14 @@ const userSchema = new mongoose.Schema(
     following: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
     acceptedFollowRequests: { type: [mongoose.Schema.Types.ObjectId], ref: 'User', default: [] },
     followRequests: { type: [mongoose.Schema.Types.ObjectId], ref: 'User', default: [] },
+    postNotifications: [
+      {
+        post: { type: mongoose.Schema.Types.ObjectId, ref: 'Post' },
+        sender: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+        isRead: { type: Boolean, default: false },
+        createdAt: { type: Date, default: Date.now }
+      }
+    ]
   },
   { timestamps: true }
 );

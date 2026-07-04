@@ -9,6 +9,8 @@ const {
   rejectFollowRequest,
   followBack,
   unfollow,
+  getPostNotifications,
+  markPostNotificationsAsRead,
 } = require('../controllers/userController');
 
 router.get('/user/:id', getUser);
@@ -19,5 +21,9 @@ router.post('/user/:id/followRequest/accept', acceptFollowRequest);
 router.post('/user/:id/followRequest/reject', rejectFollowRequest);
 router.post('/user/:id/followBack', followBack);
 router.post('/user/:targetId/unfollow', unfollow);
+
+// New post notification routes
+router.get('/user/:userId/postNotifications', getPostNotifications);
+router.post('/user/:userId/postNotifications/read', markPostNotificationsAsRead);
 
 module.exports = router;

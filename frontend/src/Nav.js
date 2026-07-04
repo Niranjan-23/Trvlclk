@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link, NavLink } from "react-router-dom";
+import { io } from "socket.io-client";
 import "./Nav.css";
 import logo from "./assets/logo.png";
 import API_BASE_URL from "./config";
@@ -18,6 +19,7 @@ const Nav = ({ onLinkClick, toggleTheme, isDarkMode, loggedInUser: propUser, han
   const storedUser = JSON.parse(localStorage.getItem("loggedInUser") || "null");
   const currentUser = propUser || storedUser;
   const [notificationCount, setNotificationCount] = useState(0);
+  const [unreadChatsCount, setUnreadChatsCount] = useState(0);
 
   const fetchNotificationCount = async () => {
     if (!currentUser || !currentUser._id) {
@@ -25,21 +27,83 @@ const Nav = ({ onLinkClick, toggleTheme, isDarkMode, loggedInUser: propUser, han
       return;
     }
     try {
-      const response = await fetch(`${API_BASE_URL}/api/user/${currentUser._id}/followRequests`);
-      if (response.ok) {
-        const data = await response.json();
-        setNotificationCount(data.pendingFollowRequests?.length || 0);
+      // 1. Fetch follow requests
+      const followReqResponse = await fetch(`${API_BASE_URL}/api/user/${currentUser._id}/followRequests`);
+      let followReqCount = 0;
+      if (followReqResponse.ok) {
+        const data = await followReqResponse.json();
+        followReqCount = data.pendingFollowRequests?.length || 0;
       }
+
+      // 2. Fetch unread post notifications
+      const postNotifResponse = await fetch(`${API_BASE_URL}/api/user/${currentUser._id}/postNotifications`);
+      let postNotifCount = 0;
+      if (postNotifResponse.ok) {
+        const data = await postNotifResponse.json();
+        postNotifCount = (data.postNotifications || []).filter(n => n.isRead === false).length;
+      }
+
+      setNotificationCount(followReqCount + postNotifCount);
     } catch (error) {
       console.error("Error fetching notification count:", error);
     }
   };
 
+  const fetchUnreadChatsCount = async () => {
+    if (!currentUser || !currentUser._id) {
+      setUnreadChatsCount(0);
+      return;
+    }
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/conversations/unread-count/${currentUser._id}`);
+      if (response.ok) {
+        const data = await response.json();
+        setUnreadChatsCount(data.unreadChatsCount || 0);
+      }
+    } catch (error) {
+      console.error("Error fetching unread chats count:", error);
+    }
+  };
+
   useEffect(() => {
     fetchNotificationCount();
+    fetchUnreadChatsCount();
+
     const handleUserUpdated = () => fetchNotificationCount();
+    const handleMessagesUpdated = () => fetchUnreadChatsCount();
+
     window.addEventListener("userUpdated", handleUserUpdated);
-    return () => window.removeEventListener("userUpdated", handleUserUpdated);
+    window.addEventListener("messagesUpdated", handleMessagesUpdated);
+
+    // Establish Socket.io connection for real-time post notifications
+    const socket = io(API_BASE_URL);
+    if (currentUser && currentUser._id) {
+      socket.emit("join_user", currentUser._id);
+    }
+
+    socket.on("new_post_notification", (data) => {
+      console.log("[Socket.io NAV] new_post_notification event received:", data);
+      fetchNotificationCount();
+      // Dispatch event to refresh Notification component if mounted
+      window.dispatchEvent(new Event("postNotificationsUpdated"));
+    });
+
+    socket.on("messages_read", (data) => {
+      fetchUnreadChatsCount();
+    });
+
+    // Light polling to keep badges in sync when idling
+    const interval = setInterval(() => {
+      fetchNotificationCount();
+      fetchUnreadChatsCount();
+    }, 15000);
+
+    return () => {
+      window.removeEventListener("userUpdated", handleUserUpdated);
+      window.removeEventListener("messagesUpdated", handleMessagesUpdated);
+      socket.disconnect();
+      clearInterval(interval);
+    };
   }, [currentUser?._id]);
 
   const navLinkClassName = ({ isActive }) => `sidebar-item${isActive ? " sidebar-item-active" : ""}`;
@@ -90,6 +154,7 @@ const Nav = ({ onLinkClick, toggleTheme, isDarkMode, loggedInUser: propUser, han
           <NavLink to="/messages" className={navLinkClassName} onClick={onLinkClick}>
             <ChatIcon className="sidebar-icon" />
             <span>Messages</span>
+            {unreadChatsCount > 0 && <span className="sidebar-notif-badge">{unreadChatsCount}</span>}
           </NavLink>
           <NavLink to="/Add-post" className={navLinkClassName} onClick={onLinkClick}>
             <AddBoxIcon className="sidebar-icon" />

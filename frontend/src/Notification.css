@@ -161,3 +161,37 @@
   background: #059669 !important;
   transform: translateY(-2px);
 }
+
+/* Post Notifications styling */
+.noti-time {
+  font-size: 0.72rem;
+  opacity: 0.4;
+  margin-top: 4px;
+}
+
+.notification-post-preview {
+  display: flex;
+  align-items: center;
+  margin-left: 16px;
+}
+
+.noti-post-thumb {
+  width: 50px;
+  height: 50px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid rgba(128, 128, 128, 0.2);
+  transition: transform 0.2s ease, border-color 0.2s ease;
+  cursor: pointer;
+}
+
+.noti-post-thumb:hover {
+  transform: scale(1.08);
+  border-color: #ff4757;
+}
+
+.noti-name-row {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}

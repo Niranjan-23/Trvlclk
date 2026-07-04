@@ -45,15 +45,48 @@ exports.createPost = async (req, res) => {
 
     await newPost.save();
     const populatedPost = await Post.findById(newPost._id)
-  .populate('user', 'username profileImage')
-  .lean(); // ensures it's a plain object so we can manipulate/verify it
+      .populate('user', 'username profileImage')
+      .lean(); // ensures it's a plain object so we can manipulate/verify it
 
-if (populatedPost) {
-  populatedPost.latitude = newPost.latitude;
-  populatedPost.longitude = newPost.longitude;
-}
+    if (populatedPost) {
+      populatedPost.latitude = newPost.latitude;
+      populatedPost.longitude = newPost.longitude;
+    }
 
-res.status(201).json({ post: populatedPost });
+    // Push new post notifications to followers
+    if (user.followers && user.followers.length > 0) {
+      await User.updateMany(
+        { _id: { $in: user.followers } },
+        {
+          $push: {
+            postNotifications: {
+              post: newPost._id,
+              sender: userId,
+              isRead: false,
+              createdAt: new Date()
+            }
+          }
+        }
+      );
+
+      // Emit socket event to followers in real-time
+      const io = req.app.get('io');
+      if (io) {
+        user.followers.forEach((followerId) => {
+          io.to(followerId.toString()).emit('new_post_notification', {
+            post: populatedPost,
+            sender: {
+              _id: user._id,
+              username: user.username,
+              profileImage: user.profileImage,
+              name: user.name
+            }
+          });
+        });
+      }
+    }
+
+    res.status(201).json({ post: populatedPost });
 
   } catch (error) {
     handleDBError(res, error);
@@ -90,9 +123,13 @@ exports.getTimelinePosts = async (req, res) => {
     }
     const currentUser = await User.findById(userId);
     if (!currentUser) return res.status(404).json({ error: 'User not found' });
-    const posts = await Post.find({ user: { $in: currentUser.following } })
+
+    // Timeline query: only show posts from users the current user follows
+    const queryIds = currentUser.following || [];
+    const posts = await Post.find({ user: { $in: queryIds } })
       .populate('user', 'username profileImage')
       .sort({ createdAt: -1 });
+
     res.status(200).json({ posts });
   } catch (error) {
     handleDBError(res, error);

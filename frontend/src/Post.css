@@ -193,6 +193,10 @@
 }
 
 /* Share Dialog */
+.share-dialog {
+  z-index: 3000 !important;
+}
+
 .share-dialog .MuiPaper-root {
   border-radius: 20px !important;
   padding: 12px !important;

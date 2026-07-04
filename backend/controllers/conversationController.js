@@ -43,6 +43,7 @@ exports.sendMessage = async (req, res) => {
       text,
       messageType: messageType || 'text',
       imageUrl,
+      isRead: false,
       replyTo: replyTo || undefined,
       post: post ? {
         _id: post._id,
@@ -70,7 +71,7 @@ exports.sendMessage = async (req, res) => {
       io.to(recipientId.toString()).emit('receive_message', socketPayload);
     }
 
-    res.status(200).json({ 
+    res.status(200).json({
       conversation: {
         ...conversation.toObject(),
         messages: conversation.messages.map(msg => ({
@@ -122,3 +123,66 @@ exports.deleteMessage = async (req, res) => {
     res.status(500).json({ error: "Error deleting message" });
   }
 };
+
+/** Mark all messages in a conversation as read by the recipient */
+exports.markMessagesAsRead = async (req, res) => {
+  try {
+    const { conversationId } = req.params;
+    const { userId } = req.body;
+
+    const conversation = await Conversation.findById(conversationId);
+    if (!conversation) {
+      return res.status(404).json({ error: 'Conversation not found' });
+    }
+
+    let updated = false;
+    conversation.messages.forEach(msg => {
+      // Message is unread and sender is NOT the reading user
+      if (msg.sender.toString() !== userId && msg.isRead === false) {
+        msg.isRead = true;
+        updated = true;
+      }
+    });
+
+    if (updated) {
+      await conversation.save();
+      const io = req.app.get('io');
+      if (io) {
+        io.to(conversationId.toString()).emit('messages_read', { conversationId, userId });
+      }
+    }
+
+    res.status(200).json({ success: true });
+  } catch (error) {
+    console.error('Error marking messages as read:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
+/** Get the count of chats that have at least one unread message for a user */
+exports.getUnreadChatsCount = async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    // Find conversations where user is a participant
+    const conversations = await Conversation.find({
+      participants: userId
+    });
+
+    let unreadChatsCount = 0;
+    conversations.forEach(conv => {
+      const hasUnread = conv.messages.some(msg => 
+        msg.sender.toString() !== userId && msg.isRead === false
+      );
+      if (hasUnread) {
+        unreadChatsCount++;
+      }
+    });
+
+    res.status(200).json({ unreadChatsCount });
+  } catch (error) {
+    console.error('Error getting unread chats count:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+

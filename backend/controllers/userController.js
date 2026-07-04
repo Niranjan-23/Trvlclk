@@ -214,3 +214,61 @@ exports.unfollow = async (req, res) => {
     handleDBError(res, error);
   }
 };
+
+exports.getPostNotifications = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ error: 'Invalid user ID' });
+    }
+    const user = await User.findById(userId)
+      .populate({
+        path: 'postNotifications.post',
+        populate: { path: 'user', select: 'username profileImage' }
+      })
+      .populate('postNotifications.sender', 'username name profileImage');
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const notifications = (user.postNotifications || []).sort(
+      (a, b) => new Date(b.createdAt) - new Date(a.createdAt)
+    );
+
+    res.status(200).json({ postNotifications: notifications });
+  } catch (error) {
+    console.error('Error fetching post notifications:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+};
+
+exports.markPostNotificationsAsRead = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+      return res.status(400).json({ error: 'Invalid user ID' });
+    }
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    let updated = false;
+    user.postNotifications.forEach(notif => {
+      if (notif.isRead === false) {
+        notif.isRead = true;
+        updated = true;
+      }
+    });
+
+    if (updated) {
+      await user.save();
+    }
+
+    res.status(200).json({ success: true });
+  } catch (error) {
+    console.error('Error marking post notifications as read:', error);
+    res.status(500).json({ error: 'Server error' });
+  }
+};

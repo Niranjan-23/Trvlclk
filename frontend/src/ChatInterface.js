@@ -31,17 +31,25 @@ const ChatInterface = ({ loggedInUser }) => {
   const [selectedPost, setSelectedPost] = useState(null); // State for selected post
   const [replyTo, setReplyTo] = useState(null);
   const [showChatOnMobile, setShowChatOnMobile] = useState(false);
+  const [firstUnreadMessageId, setFirstUnreadMessageId] = useState(null);
   const searchRef = useRef(null);
   const socketRef = useRef(null);
   const messagesEndRef = useRef(null);
+  const firstUnreadRef = useRef(null);
+  const hasScrolledToUnread = useRef(false);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
   useEffect(() => {
-    scrollToBottom();
-  }, [messages]);
+    if (firstUnreadMessageId && !hasScrolledToUnread.current && firstUnreadRef.current) {
+      firstUnreadRef.current.scrollIntoView({ behavior: "auto", block: "center" });
+      hasScrolledToUnread.current = true;
+    } else {
+      scrollToBottom();
+    }
+  }, [messages, firstUnreadMessageId]);
 
   const reorderChatList = useCallback((targetUserId, latestMsg) => {
     setChatUsers((prevChatUsers) => {
@@ -68,12 +76,35 @@ const ChatInterface = ({ loggedInUser }) => {
       console.log("[Socket.io FRONTEND] receive_message event:", data);
       const incomingMsg = data.message || data;
       if (incomingMsg) {
-        setMessages((prevMessages) => {
-          if (prevMessages.some((m) => m._id === incomingMsg._id)) {
-            return prevMessages;
+        const isCurrentChat = data.conversationId
+          ? data.conversationId === conversationId
+          : (incomingMsg.sender === activeChat?.id || incomingMsg.sender === loggedInUser?._id);
+
+        if (isCurrentChat) {
+          // If message is from the active chat and from the other user, mark it as read immediately
+          if (incomingMsg.sender !== loggedInUser?._id) {
+            incomingMsg.isRead = true;
+            if (data.conversationId) {
+              fetch(`${API_BASE_URL}/api/conversations/${data.conversationId}/read`, {
+                method: "POST",
+                headers: {
+                  Authorization: `Bearer ${localStorage.getItem("token")}`,
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ userId: loggedInUser._id }),
+              }).then(() => {
+                window.dispatchEvent(new Event("messagesUpdated"));
+              });
+            }
           }
-          return [...prevMessages, incomingMsg];
-        });
+          setMessages((prevMessages) => {
+            if (prevMessages.some((m) => m._id === incomingMsg._id)) {
+              return prevMessages;
+            }
+            return [...prevMessages, incomingMsg];
+          });
+        }
+
         const otherUserId =
           incomingMsg.sender === loggedInUser?._id
             ? activeChat?.id
@@ -81,7 +112,35 @@ const ChatInterface = ({ loggedInUser }) => {
         if (otherUserId) {
           reorderChatList(otherUserId, incomingMsg);
         }
+
+        // Keep unread messages count on navbar updated
+        window.dispatchEvent(new Event("messagesUpdated"));
       }
+    });
+
+    socket.on("messages_read", (data) => {
+      console.log("[Socket.io FRONTEND] messages_read event:", data);
+      if (data && data.conversationId === conversationId) {
+        setMessages((prevMessages) =>
+          prevMessages.map((msg) =>
+            msg.sender !== data.userId ? { ...msg, isRead: true } : msg
+          )
+        );
+      }
+      setChatUsers((prevChatUsers) =>
+        prevChatUsers.map((user) => {
+          if (user.conversationId === data.conversationId) {
+            return {
+              ...user,
+              messages: user.messages.map((msg) =>
+                msg.sender !== data.userId ? { ...msg, isRead: true } : msg
+              ),
+            };
+          }
+          return user;
+        })
+      );
+      window.dispatchEvent(new Event("messagesUpdated"));
     });
 
     socket.on("delete_message", (data) => {
@@ -94,7 +153,7 @@ const ChatInterface = ({ loggedInUser }) => {
     return () => {
       socket.disconnect();
     };
-  }, [loggedInUser?._id, activeChat?.id, reorderChatList]);
+  }, [loggedInUser?._id, activeChat, conversationId, reorderChatList]);
 
   useEffect(() => {
     if (socketRef.current && conversationId) {
@@ -212,6 +271,7 @@ const ChatInterface = ({ loggedInUser }) => {
   // Fetch conversation between loggedInUser and active chat user
   const fetchConversation = async (recipientId) => {
     if (!loggedInUser || !recipientId) return;
+    hasScrolledToUnread.current = false;
     try {
       const response = await fetch(
         `${API_BASE_URL}/api/conversations/${loggedInUser._id}/${recipientId}`,
@@ -227,7 +287,45 @@ const ChatInterface = ({ loggedInUser }) => {
       if (data.conversation && data.conversation._id) {
         setConversationId(data.conversation._id);
       }
-      setMessages(data.conversation.messages || []);
+      
+      const conversationMessages = data.conversation.messages || [];
+      setMessages(conversationMessages);
+
+      // Find the first unread message sent by the other user
+      const firstUnread = conversationMessages.find(
+        (msg) => msg.sender !== loggedInUser._id && msg.isRead === false
+      );
+      setFirstUnreadMessageId(firstUnread ? firstUnread._id : null);
+
+      // Mark the conversation messages as read in backend
+      if (data.conversation && data.conversation._id) {
+        fetch(`${API_BASE_URL}/api/conversations/${data.conversation._id}/read`, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ userId: loggedInUser._id }),
+        })
+          .then(() => {
+            window.dispatchEvent(new Event("messagesUpdated"));
+            // Update local sidebar messages read status
+            setChatUsers((prevChatUsers) =>
+              prevChatUsers.map((user) => {
+                if (user.id === recipientId) {
+                  return {
+                    ...user,
+                    messages: user.messages.map((m) =>
+                      m.sender !== loggedInUser._id ? { ...m, isRead: true } : m
+                    ),
+                  };
+                }
+                return user;
+              })
+            );
+          })
+          .catch((error) => console.error("Error marking messages as read:", error));
+      }
     } catch (err) {
       console.error("Error fetching conversation:", err);
       setError("Could not load conversation. Please try again.");
@@ -564,16 +662,22 @@ const ChatInterface = ({ loggedInUser }) => {
         </div>
         <ul className="chat-list">
           {chatUsers.length > 0 ? (
-            chatUsers.map((user) => (
-              <li
-                key={user.id}
-                className={activeChat?.id === user.id ? "active" : ""}
-                onClick={() => handleSearchSelect(user)}
-              >
-                <Avatar src={user.profileImage} className="sidebar-avatar" />
-                <span className="sidebar-name">{user.name}</span>
-              </li>
-            ))
+            chatUsers.map((user) => {
+              const unreadCount = user.messages
+                ? user.messages.filter((m) => m.sender !== loggedInUser._id && m.isRead === false).length
+                : 0;
+              return (
+                <li
+                  key={user.id}
+                  className={activeChat?.id === user.id ? "active" : ""}
+                  onClick={() => handleSearchSelect(user)}
+                >
+                  <Avatar src={user.profileImage} className="sidebar-avatar" />
+                  <span className="sidebar-name">{user.name}</span>
+                  {unreadCount > 0 && <span className="chat-unread-badge">{unreadCount}</span>}
+                </li>
+              );
+            })
           ) : (
             <li>No chats available</li>
           )}
@@ -602,115 +706,124 @@ const ChatInterface = ({ loggedInUser }) => {
                   const isSent = msg.sender === loggedInUser._id;
                   const messageId = msg._id || index;
                   if (msg.replyTo) console.log("[DEBUG FRONTEND RENDER] Rendering message with replyTo:", messageId, msg.replyTo);
+                  
+                  const showSeparator = firstUnreadMessageId && msg._id === firstUnreadMessageId;
+
                   return (
-                    <div
-                      key={messageId}
-                      className={`message-row ${isSent ? "sent-row" : "received-row"} ${showDeleteFor === messageId ? "active-dropdown" : ""}`}
-                    >
-                      {!isSent && (
-                        <Avatar
-                          src={activeChat.profileImage}
-                          className="message-avatar"
-                        />
+                    <React.Fragment key={messageId}>
+                      {showSeparator && (
+                        <div className="new-messages-separator" ref={firstUnreadRef}>
+                          <span>New Messages</span>
+                        </div>
                       )}
-                      <div className={isSent ? "sent" : "received"}>
-                        {/* --- WhatsApp/Instagram style reply preview inside bubble --- */}
-                        {msg.replyTo && (msg.replyTo.text || msg.replyTo.imageUrl || msg.replyTo.messageType === 'image') && (
-                          <div className="insta-reply-preview">
-                            <div className="insta-reply-author">
-                              {String(typeof msg.replyTo.sender === 'object' ? msg.replyTo.sender._id : msg.replyTo.sender) === String(loggedInUser._id)
-                                ? "You"
-                                : activeChat?.name || "User"}
-                            </div>
-                            <div className="insta-reply-snippet">
-                              {msg.replyTo.messageType === "image" || isImageUrl(msg.replyTo.text || msg.replyTo.imageUrl) ? (
-                                <div className="insta-reply-media-box">
-                                  <span>📷 Photo</span>
-                                  {(msg.replyTo.imageUrl || msg.replyTo.text) && (
-                                    <img
-                                      src={msg.replyTo.imageUrl || msg.replyTo.text}
-                                      alt="preview"
-                                      className="insta-reply-thumb"
-                                    />
-                                  )}
-                                </div>
-                              ) : (
-                                <span className="insta-reply-text">
-                                  {msg.replyTo.text}
-                                </span>
-                              )}
-                            </div>
-                          </div>
+                      <div
+                        className={`message-row ${isSent ? "sent-row" : "received-row"} ${showDeleteFor === messageId ? "active-dropdown" : ""}`}
+                      >
+                        {!isSent && (
+                          <Avatar
+                            src={activeChat.profileImage}
+                            className="message-avatar"
+                          />
                         )}
-                        {/* --- End reply preview --- */}
-                        <div className="bubble-content">
-                          {/* Three dots menu and message content as before */}
-                          <div className="message-options">
-                            <IconButton
-                              size="small"
-                              onClick={() =>
-                                setShowDeleteFor(showDeleteFor === messageId ? null : messageId)
-                              }
-                            >
-                              <MoreVertIcon fontSize="small" style={{ color: isSent ? '#fff' : '#666' }} />
-                            </IconButton>
-                            {showDeleteFor === messageId && (
-                              <div
-                                className={`delete-dropdown ${isSent ? "left" : "right"}`}
-                              >
-                                <div className="dropdown-arrow" />
-                                <button
-                                  className="dropdown-action-btn reply-action-btn"
-                                  onClick={() => {
-                                    handleReply(msg);
-                                    setShowDeleteFor(null);
-                                  }}
-                                >
-                                  <ReplyIcon fontSize="small" />
-                                  <span>Reply</span>
-                                </button>
-                                <button
-                                  className="dropdown-action-btn delete-action-btn"
-                                  onClick={() => {
-                                    deleteMessage(msg._id);
-                                    setShowDeleteFor(null);
-                                  }}
-                                >
-                                  <DeleteIcon fontSize="small" />
-                                  <span>Delete</span>
-                                </button>
+                        <div className={isSent ? "sent" : "received"}>
+                          {/* --- WhatsApp/Instagram style reply preview inside bubble --- */}
+                          {msg.replyTo && (msg.replyTo.text || msg.replyTo.imageUrl || msg.replyTo.messageType === 'image') && (
+                            <div className="insta-reply-preview">
+                              <div className="insta-reply-author">
+                                {String(typeof msg.replyTo.sender === 'object' ? msg.replyTo.sender._id : msg.replyTo.sender) === String(loggedInUser._id)
+                                  ? "You"
+                                  : activeChat?.name || "User"}
                               </div>
-                            )}
-                          </div>
-                          {/* Message content */}
-                          {msg.messageType === "image" || isImageUrl(msg.text) ? (
-                            <div className="image-container" onClick={() => handlePostClick(msg)}>
-                              <img
-                                src={msg.imageUrl || msg.text}
-                                alt="shared content"
-                                className="chat-image"
-                              />
-                              {msg.post && (
-                                <div className="image-overlay">
-                                  <span>View Post</span>
+                              <div className="insta-reply-snippet">
+                                {msg.replyTo.messageType === "image" || isImageUrl(msg.replyTo.text || msg.replyTo.imageUrl) ? (
+                                  <div className="insta-reply-media-box">
+                                    <span>📷 Photo</span>
+                                    {(msg.replyTo.imageUrl || msg.replyTo.text) && (
+                                      <img
+                                        src={msg.replyTo.imageUrl || msg.replyTo.text}
+                                        alt="preview"
+                                        className="insta-reply-thumb"
+                                      />
+                                    )}
+                                  </div>
+                                ) : (
+                                  <span className="insta-reply-text">
+                                    {msg.replyTo.text}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          )}
+                          {/* --- End reply preview --- */}
+                          <div className="bubble-content">
+                            {/* Three dots menu and message content as before */}
+                            <div className="message-options">
+                              <IconButton
+                                size="small"
+                                onClick={() =>
+                                  setShowDeleteFor(showDeleteFor === messageId ? null : messageId)
+                                }
+                              >
+                                <MoreVertIcon fontSize="small" style={{ color: isSent ? '#fff' : '#666' }} />
+                              </IconButton>
+                              {showDeleteFor === messageId && (
+                                <div
+                                  className={`delete-dropdown ${isSent ? "left" : "right"}`}
+                                >
+                                  <div className="dropdown-arrow" />
+                                  <button
+                                    className="dropdown-action-btn reply-action-btn"
+                                    onClick={() => {
+                                      handleReply(msg);
+                                      setShowDeleteFor(null);
+                                    }}
+                                  >
+                                    <ReplyIcon fontSize="small" />
+                                    <span>Reply</span>
+                                  </button>
+                                  <button
+                                    className="dropdown-action-btn delete-action-btn"
+                                    onClick={() => {
+                                      deleteMessage(msg._id);
+                                      setShowDeleteFor(null);
+                                    }}
+                                  >
+                                    <DeleteIcon fontSize="small" />
+                                    <span>Delete</span>
+                                  </button>
                                 </div>
                               )}
                             </div>
-                          ) : (
-                            <span>{msg.text}</span>
-                          )}
-                          <div className="message-timestamp">
-                            {formatRelativeTime(msg.createdAt)}
+                            {/* Message content */}
+                            {msg.messageType === "image" || isImageUrl(msg.text) ? (
+                              <div className="image-container" onClick={() => handlePostClick(msg)}>
+                                <img
+                                  src={msg.imageUrl || msg.text}
+                                  alt="shared content"
+                                  className="chat-image"
+                                />
+                                {msg.post && (
+                                  <div className="image-overlay">
+                                    <span>View Post</span>
+                                  </div>
+                                )}
+                              </div>
+                            ) : (
+                              <span>{msg.text}</span>
+                            )}
+                            <div className="message-timestamp">
+                              {formatRelativeTime(msg.createdAt)}
+                            </div>
                           </div>
                         </div>
+                        {isSent && (
+                          <Avatar
+                            src={loggedInUser.profileImage}
+                            className="message-avatar"
+                          />
+                        )}
                       </div>
-                      {isSent && (
-                        <Avatar
-                          src={loggedInUser.profileImage}
-                          className="message-avatar"
-                        />
-                      )}
-                    </div>
+                    </React.Fragment>
                   );
                 })
               ) : (
